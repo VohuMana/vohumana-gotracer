@@ -8,7 +8,14 @@ import
 	"log"
     "math"
 	"os"
+    "github.com/vohumana/vohumana-gotracer/raytracer"
 )
+
+func rayColor(r raytracer.Ray) color.RGBA {
+    t := 0.5 * (r.Direction.Y + 1.0)
+    c := raytracer.Vector3{ X: 0.5, Y: 0.7, Z: 1.0 }.Scale(1.0 - t).Add(raytracer.Vector3{X:1.0, Y: 1.0, Z: 1.0}.Scale(t)); 
+    return color.RGBA{uint8(c.X * math.MaxUint8), uint8(c.Y * math.MaxUint8), uint8(c.Z * math.MaxUint8), 255}
+}
 
 func checkError(err error) {
 	if (err != nil) {
@@ -17,22 +24,37 @@ func checkError(err error) {
 }
 
 func main() {
-    xSize := 200
-    ySize := 100
+    xSize := 800
+    ySize := 600
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
+    lowerLeftImageCorner := raytracer.Vector3{
+        X: -2.0,
+        Y: -1.0,
+        Z: -1.0 }
+    horiz := raytracer.Vector3{
+        X: 4.0,
+        Y: 0.0,
+        Z: 0.0 }
+    vert := raytracer.Vector3{
+        X: 0.0,
+        Y: 2.0,
+        Z: 0.0 }
+    origin := raytracer.Vector3{
+        X: 0.0,
+        Y: 0.0,
+        Z: 0.0 }
     rayTracedFrame := image.NewRGBA(bounds)
     
     for y := 0; y < ySize; y++ {
         for x := 0; x < xSize; x++ {
-            var r float32
-            var g float32
-            var b float32
+            u := float32(x) / float32(xSize)
+            v := float32(y) / float32(ySize)
             
-            r = float32(x) / float32(xSize)
-            g = float32(y) / float32(ySize)
-            b = 0.2
+            r := raytracer.Ray{
+                Origin: origin,
+                Direction: lowerLeftImageCorner.Add(horiz.Scale(u)).Add(vert.Scale(v)).UnitVector() }
             
-            rayTracedFrame.Set(x, y, color.RGBA{uint8(r * math.MaxUint8), uint8(g * math.MaxUint8), uint8(b * math.MaxUint8), 255})
+            rayTracedFrame.Set(x, y, rayColor(r))
         }
     }
     
