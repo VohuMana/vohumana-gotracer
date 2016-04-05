@@ -13,6 +13,7 @@ import
 
 func rayColor(r raytracer.Ray) color.RGBA {
     t := 0.5 * (r.Direction.Y + 1.0)
+    // Lerp from blue to white
     c := raytracer.Vector3{ X: 0.5, Y: 0.7, Z: 1.0 }.Scale(1.0 - t).Add(raytracer.Vector3{X:1.0, Y: 1.0, Z: 1.0}.Scale(t)); 
     return color.RGBA{uint8(c.X * math.MaxUint8), uint8(c.Y * math.MaxUint8), uint8(c.Z * math.MaxUint8), 255}
 }
@@ -24,8 +25,8 @@ func checkError(err error) {
 }
 
 func main() {
-    xSize := 800
-    ySize := 600
+    xSize := 3840
+    ySize := 2160
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
     lowerLeftImageCorner := raytracer.Vector3{
         X: -2.0,
@@ -37,7 +38,7 @@ func main() {
         Z: 0.0 }
     vert := raytracer.Vector3{
         X: 0.0,
-        Y: 2.0,
+        Y: 4.0,
         Z: 0.0 }
     origin := raytracer.Vector3{
         X: 0.0,
