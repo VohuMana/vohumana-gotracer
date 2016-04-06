@@ -11,11 +11,22 @@ import
     "github.com/vohumana/vohumana-gotracer/raytracer"
 )
 
-func rayColor(r raytracer.Ray) color.RGBA {
+func rayColor(r raytracer.Ray, o raytracer.CollidableObject) color.RGBA {
+    collided, record := o.TestIntersection(r)
+    if (collided) {
+        c := record.Normal.Scale(0.5)
+        c = c.Add(raytracer.Vector3{X:1.0, Y:1.0, Z:1.0})
+        
+        c.X = float32(math.Min(1.0, float64(c.X)))
+        c.Y = float32(math.Min(1.0, float64(c.Y)))
+        c.Z = float32(math.Min(1.0, float64(c.Z)))
+        return c.AsColor()
+    }
+    
     t := 0.5 * (r.Direction.Y + 1.0)
     // Lerp from blue to white
     c := raytracer.Vector3{ X: 0.5, Y: 0.7, Z: 1.0 }.Scale(1.0 - t).Add(raytracer.Vector3{X:1.0, Y: 1.0, Z: 1.0}.Scale(t)); 
-    return color.RGBA{uint8(c.X * math.MaxUint8), uint8(c.Y * math.MaxUint8), uint8(c.Z * math.MaxUint8), 255}
+    return c.AsColor()
 }
 
 func checkError(err error) {
@@ -32,18 +43,25 @@ func main() {
         X: -2.0,
         Y: -1.0,
         Z: -1.0 }
-    horiz := raytracer.Vector3{
-        X: 4.0,
-        Y: 0.0,
-        Z: 0.0 }
-    vert := raytracer.Vector3{
-        X: 0.0,
-        Y: 4.0,
-        Z: 0.0 }
-    origin := raytracer.Vector3{
-        X: 0.0,
-        Y: 0.0,
-        Z: 0.0 }
+    camera := raytracer.Camera{
+        Origin: raytracer.Vector3{
+            X: 0.0,
+            Y: 0.0,
+            Z: 0.0 },
+        ImagePlaneHorizontal: raytracer.Vector3{
+            X: 3.8,
+            Y: 0.0,
+            Z: 0.0 },
+        ImagePlaneVertical: raytracer.Vector3{
+            X: 0.0,
+            Y: 2.1,
+            Z: 0.0 } }
+    sphere := raytracer.Sphere{
+        Origin: raytracer.Vector3{
+            X: 0.5,
+            Y: 0.5,
+            Z: -5.0 },
+        Radius: 1.0 }
     rayTracedFrame := image.NewRGBA(bounds)
     
     for y := 0; y < ySize; y++ {
@@ -52,10 +70,10 @@ func main() {
             v := float32(y) / float32(ySize)
             
             r := raytracer.Ray{
-                Origin: origin,
-                Direction: lowerLeftImageCorner.Add(horiz.Scale(u)).Add(vert.Scale(v)).UnitVector() }
+                Origin: camera.Origin,
+                Direction: lowerLeftImageCorner.Add(camera.ImagePlaneHorizontal.Scale(u)).Add(camera.ImagePlaneVertical.Scale(v)).UnitVector() }
             
-            rayTracedFrame.Set(x, y, rayColor(r))
+            rayTracedFrame.Set(x, y, rayColor(r, sphere))
         }
     }
     

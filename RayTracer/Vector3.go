@@ -2,6 +2,7 @@ package raytracer
 
 import
 (
+    "image/color"
     "math"
 )
 
@@ -80,4 +81,9 @@ func (v Vector3) UnitVector() Vector3 {
         X: v.X / len,
         Y: v.Y / len,
         Z: v.Z / len }
+}
+
+// AsColor converts a vector to RGBA color values
+func (v Vector3) AsColor() color.RGBA {
+    return color.RGBA{uint8(v.X * math.MaxUint8), uint8(v.Y * math.MaxUint8), uint8(v.Z * math.MaxUint8), 255}
 }
