@@ -12,7 +12,7 @@ type Sphere struct {
 }
 
 // TestIntersection will test for an intersection between the sphere and ray
-func (s Sphere) TestIntersection(r Ray) (bool, IntersectionRecord) {
+func (s Sphere) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
     var record IntersectionRecord
     
     m := r.Origin.Subtract(s.Origin)
@@ -30,6 +30,11 @@ func (s Sphere) TestIntersection(r Ray) (bool, IntersectionRecord) {
     }
     
     record.T = float32(float64(-b) - math.Sqrt(float64(descriminant)))
+    
+    if (record.T < tMin || record.T > tMax) {
+        return false, record
+    }
+    
     record.Point = r.PointOnRay(record.T)
     record.Normal = record.Point.Subtract(s.Origin).UnitVector()
     
