@@ -3,31 +3,11 @@ package main
 import
 (
 	"image"
-    "image/color"
 	"image/png"
 	"log"
-    "math"
 	"os"
     "github.com/vohumana/vohumana-gotracer/raytracer"
 )
-
-func rayColor(r raytracer.Ray, l raytracer.CollisionList) color.RGBA {
-    collided, record := l.TestCollision(r, 0.0, math.MaxFloat32)
-    if (collided) {
-        c := record.Normal.Scale(0.5)
-        c = c.Add(raytracer.Vector3{X:1.0, Y:1.0, Z:1.0})
-        
-        c.X = float32(math.Min(1.0, float64(c.X)))
-        c.Y = float32(math.Min(1.0, float64(c.Y)))
-        c.Z = float32(math.Min(1.0, float64(c.Z)))
-        return c.AsColor()
-    }
-    
-    t := 0.5 * (r.Direction.Y + 1.0)
-    // Lerp from blue to white
-    c := raytracer.Vector3{ X: 0.5, Y: 0.7, Z: 1.0 }.Scale(1.0 - t).Add(raytracer.Vector3{X:1.0, Y: 1.0, Z: 1.0}.Scale(t)); 
-    return c.AsColor()
-}
 
 func checkError(err error) {
 	if (err != nil) {
@@ -43,7 +23,6 @@ func main() {
         X: 2.0,
         Y: 1.0,
         Z: -1.0 }
-    var objects raytracer.CollisionList
     camera := raytracer.Camera{
         Origin: raytracer.Vector3{
             X: 0.0,
@@ -62,22 +41,28 @@ func main() {
             X: 0.5,
             Y: 0.5,
             Z: -5.0 },
-        Radius: 1.0 }
+        Radius: 1.0,
+        Properties: raytracer.Material {
+            Reflectiveness: 0.5 } }
     sphere2 := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.5,
             Y: 5.0,
             Z: -10.0 },
-        Radius: 1.0 }
+        Radius: 1.0,
+        Properties: raytracer.Material {
+            Reflectiveness: 0.75 } }
     largeSphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.,
             Y: -101.0,
             Z: 0.0 },
-        Radius: 100.0 }
-    objects.AddObject("sphere1", sphere)
-    objects.AddObject("sphere2", sphere2)
-    objects.AddObject("largeSphere", largeSphere)
+        Radius: 100.0,
+        Properties: raytracer.Material {
+            Reflectiveness: 0.3 } }
+    raytracer.Scene.AddObject("sphere1", sphere)
+    raytracer.Scene.AddObject("sphere2", sphere2)
+    raytracer.Scene.AddObject("largeSphere", largeSphere)
     
     rayTracedFrame := image.NewRGBA(bounds)
     
@@ -90,7 +75,7 @@ func main() {
                 Origin: camera.Origin,
                 Direction: upperLeftImageCorner.Add(camera.ImagePlaneHorizontal.Scale(u)).Add(camera.ImagePlaneVertical.Scale(v)).UnitVector() }
             
-            rayTracedFrame.Set(x, y, rayColor(r, objects))
+            rayTracedFrame.Set(x, y, raytracer.ShootRay(r, raytracer.Scene))
         }
     }
     

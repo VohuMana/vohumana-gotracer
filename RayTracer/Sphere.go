@@ -2,13 +2,39 @@ package raytracer
 
 import
 (
+    "image/color"
     "math"
+    "math/rand"
 )
 
 // Sphere is basic geometry used by the ray tracer
 type Sphere struct {
     Origin Vector3
     Radius float32 
+    Properties Material
+}
+
+func createUnitSphereVector() Vector3 {
+    return Vector3 {
+        rand.Float32(),
+        rand.Float32(),
+        rand.Float32() }.Subtract(Vector3 {
+            1.0,
+            1.0,
+            1.0 }).Multiply(Vector3 {
+                2.0,
+                2.0,
+                2.0 })
+}
+
+func  randomVectorInUnitSphere() Vector3 {
+    p := createUnitSphereVector()
+    
+    for p.Dot(p) >= 1.0 {
+        p = createUnitSphereVector()
+    }
+    
+    return p
 }
 
 // TestIntersection will test for an intersection between the sphere and ray
@@ -37,6 +63,30 @@ func (s Sphere) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionR
     
     record.Point = r.PointOnRay(record.T)
     record.Normal = record.Point.Subtract(s.Origin).UnitVector()
+    record.Object = s
     
     return true, record
+}
+
+// GetColor gets the color at a collision point
+func (s Sphere) GetColor(i IntersectionRecord) color.RGBA {
+    
+    target := i.Point.Add(i.Normal).Add(randomVectorInUnitSphere())
+    bouncedRay := Ray {
+        Origin: i.Point,
+        Direction: target.Subtract(i.Point).UnitVector() }
+    c := ShootRay(bouncedRay, Scene)
+    c.R = uint8(s.Properties.Reflectiveness * float32(c.R))
+    c.G = uint8(s.Properties.Reflectiveness * float32(c.G))
+    c.B = uint8(s.Properties.Reflectiveness * float32(c.B))
+    return c
+    
+    // Render normals
+    // c := i.Normal.Scale(0.5)
+    // c = c.Add(Vector3{X:1.0, Y:1.0, Z:1.0})
+    
+    // c.X = float32(math.Min(1.0, float64(c.X)))
+    // c.Y = float32(math.Min(1.0, float64(c.Y)))
+    // c.Z = float32(math.Min(1.0, float64(c.Z)))
+    // return c.AsColor()
 }

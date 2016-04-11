@@ -6,7 +6,7 @@ type CollisionList struct {
 }
 
 // AddObject adds a collidableobject to the collision map
-func (c *CollisionList) AddObject(name string, obj CollidableObject) {
+func (c *CollisionList) addObject(name string, obj CollidableObject) {
     if (nil == c.collisionList) {
         c.collisionList = make(map[string]CollidableObject)
     }
@@ -15,7 +15,7 @@ func (c *CollisionList) AddObject(name string, obj CollidableObject) {
 }
 
 // TestCollision loops through all the objects testing if the ray is colliding with any and returns the nearest object
-func (c CollisionList) TestCollision(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
+func (c CollisionList) testCollision(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
     collisionDetected := false
     var closestHitRecord IntersectionRecord
     closestT := tMax
