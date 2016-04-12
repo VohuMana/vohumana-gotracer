@@ -69,16 +69,23 @@ func (s Sphere) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionR
 }
 
 // GetColor gets the color at a collision point
-func (s Sphere) GetColor(i IntersectionRecord) color.RGBA {
+func (s Sphere) GetColor(i IntersectionRecord, bounces uint32) color.RGBA {    
+    if (bounces > MaxBounces) {
+        return s.Properties.Color
+    }
     
     target := i.Point.Add(i.Normal).Add(randomVectorInUnitSphere())
     bouncedRay := Ray {
         Origin: i.Point,
         Direction: target.Subtract(i.Point).UnitVector() }
-    c := ShootRay(bouncedRay, Scene)
-    c.R = uint8(s.Properties.Reflectiveness * float32(c.R))
-    c.G = uint8(s.Properties.Reflectiveness * float32(c.G))
-    c.B = uint8(s.Properties.Reflectiveness * float32(c.B))
+    c := ShootRay(bouncedRay, Scene, bounces + 1)
+    c.R = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.R), 0.0, 255.0))
+    c.G = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.G), 0.0, 255.0))
+    c.B = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.B), 0.0, 255.0))
+    
+    c.R = uint8(restrictValues(float32(c.R + s.Properties.Color.R), 0.0, 255.0))
+    c.G = uint8(restrictValues(float32(c.G + s.Properties.Color.G), 0.0, 255.0))
+    c.B = uint8(restrictValues(float32(c.B + s.Properties.Color.B), 0.0, 255.0))
     return c
     
     // Render normals
@@ -89,4 +96,10 @@ func (s Sphere) GetColor(i IntersectionRecord) color.RGBA {
     // c.Y = float32(math.Min(1.0, float64(c.Y)))
     // c.Z = float32(math.Min(1.0, float64(c.Z)))
     // return c.AsColor()
+}
+
+func restrictValues(num, min, max float32) float32 {
+    num = float32(math.Min(float64(num), float64(max)))
+    num = float32(math.Max(float64(num), float64(min)))
+    return num
 }

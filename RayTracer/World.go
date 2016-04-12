@@ -14,6 +14,8 @@ type World struct {
 // Scene is the global variable that should contain the scene
 var Scene World
 
+var MaxBounces uint32
+
 // AddObject adds a collidableobject to the scene
 func (w *World) AddObject(name string, obj CollidableObject) {
     w.Scene.addObject(name, obj)
@@ -25,10 +27,10 @@ func (w World) TestCollision(r Ray, tMin, tMax float32) (bool, IntersectionRecor
 }
 
 // ShootRay shoots a ray and tests for intersection
-func ShootRay(r Ray, w World) color.RGBA {
+func ShootRay(r Ray, w World, bounceDepth uint32) color.RGBA {
     collided, record := w.TestCollision(r, 0.0, math.MaxFloat32)
     if (collided) {
-        return record.Object.GetColor(record)
+        return record.Object.GetColor(record, bounceDepth)
     }
     
     t := 0.5 * (r.Direction.Y + 1.0)

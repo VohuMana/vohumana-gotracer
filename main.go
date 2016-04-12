@@ -3,6 +3,7 @@ package main
 import
 (
 	"image"
+    "image/color"
 	"image/png"
 	"log"
 	"os"
@@ -43,7 +44,12 @@ func main() {
             Z: -5.0 },
         Radius: 1.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.5 } }
+            Reflectiveness: 0.5,
+            Color: color.RGBA {
+                R:0,
+                G:0,
+                B:255,
+                A: 255 } } }
     sphere2 := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.5,
@@ -51,7 +57,12 @@ func main() {
             Z: -10.0 },
         Radius: 1.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.75 } }
+            Reflectiveness: 0.75,
+            Color: color.RGBA {
+                R: 0,
+                G: 255,
+                B: 0,
+                A: 255 } } }
     largeSphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.,
@@ -59,10 +70,17 @@ func main() {
             Z: 0.0 },
         Radius: 100.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.3 } }
+            Reflectiveness: 0.3,
+            Color: color.RGBA {
+                R: 255,
+                G: 0,
+                B: 0,
+                A: 255 } } }
     raytracer.Scene.AddObject("sphere1", sphere)
     raytracer.Scene.AddObject("sphere2", sphere2)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
+    
+    raytracer.MaxBounces = 1
     
     rayTracedFrame := image.NewRGBA(bounds)
     
@@ -75,7 +93,7 @@ func main() {
                 Origin: camera.Origin,
                 Direction: upperLeftImageCorner.Add(camera.ImagePlaneHorizontal.Scale(u)).Add(camera.ImagePlaneVertical.Scale(v)).UnitVector() }
             
-            rayTracedFrame.Set(x, y, raytracer.ShootRay(r, raytracer.Scene))
+            rayTracedFrame.Set(x, y, raytracer.ShootRay(r, raytracer.Scene, 0))
         }
     }
     
