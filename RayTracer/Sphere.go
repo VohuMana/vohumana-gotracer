@@ -83,9 +83,9 @@ func (s Sphere) GetColor(i IntersectionRecord, bounces uint32) color.RGBA {
     c.G = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.G), 0.0, 255.0))
     c.B = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.B), 0.0, 255.0))
     
-    c.R = uint8(restrictValues(float32(c.R + s.Properties.Color.R), 0.0, 255.0))
-    c.G = uint8(restrictValues(float32(c.G + s.Properties.Color.G), 0.0, 255.0))
-    c.B = uint8(restrictValues(float32(c.B + s.Properties.Color.B), 0.0, 255.0))
+    c.R = uint8(restrictValues(float32(c.R) + float32(s.Properties.Color.R), 0.0, 255.0))
+    c.G = uint8(restrictValues(float32(c.G) + float32(s.Properties.Color.G), 0.0, 255.0))
+    c.B = uint8(restrictValues(float32(c.B) + float32(s.Properties.Color.B), 0.0, 255.0))
     return c
     
     // Render normals
