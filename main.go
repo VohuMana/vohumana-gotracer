@@ -44,7 +44,7 @@ func main() {
             Z: -5.0 },
         Radius: 1.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.5,
+            Reflectiveness: 0.85,
             Color: color.RGBA {
                 R:0,
                 G:0,
@@ -57,7 +57,7 @@ func main() {
             Z: -10.0 },
         Radius: 1.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.75,
+            Reflectiveness: 0.5,
             Color: color.RGBA {
                 R: 0,
                 G: 255,
@@ -80,7 +80,7 @@ func main() {
     raytracer.Scene.AddObject("sphere2", sphere2)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
     
-    raytracer.MaxBounces = 1
+    raytracer.MaxBounces = 16
     
     rayTracedFrame := image.NewRGBA(bounds)
     

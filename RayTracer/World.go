@@ -14,6 +14,7 @@ type World struct {
 // Scene is the global variable that should contain the scene
 var Scene World
 
+// MaxBounces is the maximum number of bounces that can occur before the ray tracer stops reflecting rays
 var MaxBounces uint32
 
 // AddObject adds a collidableobject to the scene
@@ -30,7 +31,7 @@ func (w World) TestCollision(r Ray, tMin, tMax float32) (bool, IntersectionRecor
 func ShootRay(r Ray, w World, bounceDepth uint32) color.RGBA {
     collided, record := w.TestCollision(r, 0.0, math.MaxFloat32)
     if (collided) {
-        return record.Object.GetColor(record, bounceDepth)
+        return record.Object.GetColor(r, record, bounceDepth)
     }
     
     t := 0.5 * (r.Direction.Y + 1.0)
