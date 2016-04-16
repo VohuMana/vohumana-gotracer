@@ -49,7 +49,8 @@ func main() {
                 R:0,
                 G:0,
                 B:255,
-                A: 255 } } }
+                A: 255 },
+            IsDiffuse: false } }
     sphere2 := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.5,
@@ -62,7 +63,8 @@ func main() {
                 R: 0,
                 G: 255,
                 B: 0,
-                A: 255 } } }
+                A: 255 },
+            IsDiffuse: false } }
     largeSphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.,
@@ -75,12 +77,14 @@ func main() {
                 R: 255,
                 G: 0,
                 B: 0,
-                A: 255 } } }
+                A: 255 },
+            IsDiffuse: true } }
     raytracer.Scene.AddObject("sphere1", sphere)
     raytracer.Scene.AddObject("sphere2", sphere2)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
     
     raytracer.MaxBounces = 16
+    raytracer.MaxDiffuseRays = 3
     
     rayTracedFrame := image.NewRGBA(bounds)
     

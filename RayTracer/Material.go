@@ -9,4 +9,5 @@ import
 type Material struct {
     Color color.RGBA
     Reflectiveness float32
+    IsDiffuse bool
 }

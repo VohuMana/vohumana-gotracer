@@ -17,6 +17,9 @@ var Scene World
 // MaxBounces is the maximum number of bounces that can occur before the ray tracer stops reflecting rays
 var MaxBounces uint32
 
+// MaxDiffuseRays is the maximum number of rays that will be bounced when rendering diffuse materials
+var MaxDiffuseRays uint32
+
 // AddObject adds a collidableobject to the scene
 func (w *World) AddObject(name string, obj CollidableObject) {
     w.Scene.addObject(name, obj)
