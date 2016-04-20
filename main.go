@@ -44,25 +44,39 @@ func main() {
             Z: -5.0 },
         Radius: 1.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.85,
+            Fuzziness: 0.0,
             Color: color.RGBA {
-                R:0,
-                G:0,
+                R:1,
+                G:1,
                 B:255,
                 A: 255 },
             IsDiffuse: false } }
     sphere2 := raytracer.Sphere{
         Origin: raytracer.Vector3{
-            X: 0.5,
-            Y: 5.0,
-            Z: -10.0 },
+            X: 3.0,
+            Y: 0.5,
+            Z: -5.0 },
         Radius: 1.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.5,
+            Fuzziness: 0.2,
             Color: color.RGBA {
-                R: 0,
+                R: 1,
                 G: 255,
-                B: 0,
+                B: 1,
+                A: 255 },
+            IsDiffuse: false } }
+    sphere3 := raytracer.Sphere{
+        Origin: raytracer.Vector3{
+            X: -2.0,
+            Y: 0.5,
+            Z: -5.0 },
+        Radius: 1.0,
+        Properties: raytracer.Material {
+            Fuzziness: 0.1,
+            Color: color.RGBA {
+                R: 255,
+                G: 255,
+                B: 255,
                 A: 255 },
             IsDiffuse: false } }
     largeSphere := raytracer.Sphere{
@@ -72,19 +86,35 @@ func main() {
             Z: 0.0 },
         Radius: 100.0,
         Properties: raytracer.Material {
-            Reflectiveness: 0.3,
             Color: color.RGBA {
-                R: 255,
-                G: 0,
-                B: 0,
+                R: 128,
+                G: 128,
+                B: 128,
                 A: 255 },
             IsDiffuse: true } }
+            
+    sphere.Properties.Attenuation = raytracer.AsVector3(sphere.Properties.Color)
+    sphere2.Properties.Attenuation = raytracer.AsVector3(sphere2.Properties.Color)
+    sphere3.Properties.Attenuation = raytracer.AsVector3(sphere3.Properties.Color)
+    largeSphere.Properties.Attenuation = raytracer.AsVector3(largeSphere.Properties.Color)
+    
+    raytracer.SkyColorBottom = raytracer.AsVector3(color.RGBA {
+        R: 255,
+        G: 239,
+        B: 138 })
+    
+    raytracer.SkyColorTop = raytracer.AsVector3(color.RGBA {
+        R: 40,
+        G: 105,
+        B: 209 })
+    
     raytracer.Scene.AddObject("sphere1", sphere)
     raytracer.Scene.AddObject("sphere2", sphere2)
+    raytracer.Scene.AddObject("sphere3", sphere3)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
     
     raytracer.MaxBounces = 16
-    raytracer.MaxDiffuseRays = 3
+    raytracer.MaxRaysPerBounce = 3
     
     rayTracedFrame := image.NewRGBA(bounds)
     

@@ -74,10 +74,10 @@ func (s Sphere) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionR
     return true, record
 }
 
-func calculateReflectionRay(r Ray, i IntersectionRecord) Ray {
+func calculateReflectionRay(r Ray, i IntersectionRecord, fuzziness float32) Ray {
     return Ray {
         Origin: i.Point,
-        Direction: calculateReflectionVector(r.Direction, i.Normal) }
+        Direction: calculateReflectionVector(r.Direction, i.Normal).Add(randomVectorInUnitSphere().Scale(fuzziness)) }
 }
 
 func calculateDiffuseRay(i IntersectionRecord) Ray {
@@ -91,52 +91,46 @@ func calculateDiffuseRay(i IntersectionRecord) Ray {
 func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA {    
     // If the ray has bounced more times than the provided amout return this objects' color
     if (bounces > MaxBounces) {
-        return s.Properties.Color
+        return color.RGBA {
+            R: 0,
+            G: 0,
+            B: 0,
+            A: 255 }
     }
     
     var bouncedRay Ray
     var c color.RGBA
+    var red, green, blue float32
     
-    if (s.Properties.IsDiffuse) {
-        // Calculate multiple scattered rays
-        bouncedRay = calculateDiffuseRay(i)
-        var r, g, b float32
-        
-        // Bounce multiple diffuse rays
-        for i := uint32(0); i < MaxDiffuseRays; i++ {
-            color := ShootRay(bouncedRay, Scene, bounces + 1)
-            r += float32(color.R)
-            g += float32(color.G)
-            b += float32(color.B)
+    // Bounce multiple diffuse rays
+    for rays := uint32(0); rays < MaxRaysPerBounce; rays++ {
+        if (s.Properties.IsDiffuse) {
+            // Calculate multiple scattered rays
+            bouncedRay = calculateDiffuseRay(i)
+        } else {
+            // Calculate where this ray would bounce to
+            bouncedRay = calculateReflectionRay(r, i, s.Properties.Fuzziness)
         }
         
-        // Average the color
-        r /= float32(MaxDiffuseRays)
-        g /= float32(MaxDiffuseRays)
-        b /= float32(MaxDiffuseRays)
-        
-        // Set the averaged color
-        c.R = uint8(r)
-        c.G = uint8(g)
-        c.B = uint8(b)
-        c.A = uint8(255)
-        
-    } else {
-        // Calculate where this ray would bounce to
-        bouncedRay = calculateReflectionRay(r, i)
-        
-        // Shoot the reflected ray out into the scene and see where it collides with
-        c = ShootRay(bouncedRay, Scene, bounces + 1)
+        color := ShootRay(bouncedRay, Scene, bounces + 1)
+        red += float32(color.R)
+        green += float32(color.G)
+        blue += float32(color.B)
     }
     
-    // Calculate the returned color value after applying how difuse the material is
-    c.R = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.R), 0.0, 255.0))
-    c.G = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.G), 0.0, 255.0))
-    c.B = uint8(restrictValues(s.Properties.Reflectiveness * float32(c.B), 0.0, 255.0))
+    // Average the color
+    red /= float32(MaxRaysPerBounce)
+    green /= float32(MaxRaysPerBounce)
+    blue /= float32(MaxRaysPerBounce)
     
-    // Add this objects' color value to the result    
-    c.R = uint8(restrictValues(float32(c.R) + (float32(s.Properties.Color.R) * (1.0 - s.Properties.Reflectiveness)), 0.0, 255.0))
-    c.G = uint8(restrictValues(float32(c.G) + (float32(s.Properties.Color.G) * (1.0 - s.Properties.Reflectiveness)), 0.0, 255.0))
-    c.B = uint8(restrictValues(float32(c.B) + (float32(s.Properties.Color.B) * (1.0 - s.Properties.Reflectiveness)), 0.0, 255.0))
+    // Set the averaged color
+    c.R = uint8(red)
+    c.G = uint8(green)
+    c.B = uint8(blue)
+    c.A = uint8(255)        
+    
+    // Multiply this objects color with the incoming color
+    c = AsVector3(c).Multiply(s.Properties.Attenuation).AsColor()
+    
     return c
 }

@@ -11,14 +11,20 @@ type World struct {
     Scene CollisionList
 }
 
+// SkyColorTop is the color of the sky at the top of the picture
+var SkyColorTop Vector3
+
+// SkyColorBottom is the color of the sky at the bottom of the picture
+var SkyColorBottom Vector3
+
 // Scene is the global variable that should contain the scene
 var Scene World
 
 // MaxBounces is the maximum number of bounces that can occur before the ray tracer stops reflecting rays
 var MaxBounces uint32
 
-// MaxDiffuseRays is the maximum number of rays that will be bounced when rendering diffuse materials
-var MaxDiffuseRays uint32
+// MaxRaysPerBounce is the maximum number of rays that will be bounced from a single intersection
+var MaxRaysPerBounce uint32
 
 // AddObject adds a collidableobject to the scene
 func (w *World) AddObject(name string, obj CollidableObject) {
@@ -39,6 +45,6 @@ func ShootRay(r Ray, w World, bounceDepth uint32) color.RGBA {
     
     t := 0.5 * (r.Direction.Y + 1.0)
     // Lerp from blue to white
-    c := Vector3{ X: 0.5, Y: 0.7, Z: 1.0 }.Scale(1.0 - t).Add(Vector3{X:1.0, Y: 1.0, Z: 1.0}.Scale(t)); 
+    c := SkyColorBottom.Scale(1.0 - t).Add(SkyColorTop.Scale(t)); 
     return c.AsColor()
 }

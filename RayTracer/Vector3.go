@@ -87,3 +87,11 @@ func (v Vector3) UnitVector() Vector3 {
 func (v Vector3) AsColor() color.RGBA {
     return color.RGBA{uint8(v.X * math.MaxUint8), uint8(v.Y * math.MaxUint8), uint8(v.Z * math.MaxUint8), 255}
 }
+
+// AsVector3 converts a color to a Vector3
+func AsVector3(c color.RGBA) Vector3 {
+    return Vector3 {
+        X: float32(c.R) / float32(math.MaxUint8),
+        Y: float32(c.G) / float32(math.MaxUint8),
+        Z: float32(c.B) / float32(math.MaxUint8) }    
+}

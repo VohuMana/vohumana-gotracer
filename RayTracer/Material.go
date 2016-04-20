@@ -8,6 +8,7 @@ import
 // Material is a struct that describes the properties each object should have
 type Material struct {
     Color color.RGBA
-    Reflectiveness float32
+    Fuzziness float32
     IsDiffuse bool
+    Attenuation Vector3
 }
