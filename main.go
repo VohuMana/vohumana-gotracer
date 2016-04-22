@@ -6,6 +6,7 @@ import
     "image/color"
 	"image/png"
 	"log"
+    "math/rand"
 	"os"
     "github.com/vohumana/vohumana-gotracer/raytracer"
 )
@@ -91,10 +92,10 @@ func main() {
         Origin: raytracer.Vector3 {
             X: 0.0,
             Y: 0.5,
-            Z: -3.0 },
+            Z: -2.0 },
         Radius: 0.5,
         Properties: raytracer.Dielectric {
-            RefractiveIndex: 2.4,
+            RefractiveIndex: 1.3,
             Attenuation: raytracer.AsVector3(white) } }
     largeSphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
@@ -123,20 +124,14 @@ func main() {
     raytracer.Scene.AddObject("largeSphere", largeSphere)
     
     raytracer.MaxBounces = 5
-    raytracer.MaxRaysPerBounce = 2
+    raytracer.MaxRaysPerBounce = 3
+    raytracer.MaxAntialiasRays = 3
     
     rayTracedFrame := image.NewRGBA(bounds)
     
     for y := 0; y < ySize; y++ {
-        for x := 0; x < xSize; x++ {
-            u := float32(x) / float32(xSize)
-            v := float32(y) / float32(ySize)
-            
-            r := raytracer.Ray{
-                Origin: camera.Origin,
-                Direction: upperLeftImageCorner.Add(camera.ImagePlaneHorizontal.Scale(u)).Add(camera.ImagePlaneVertical.Scale(v)).UnitVector() }
-                
-           go TraceRayForPoint(rayTracedFrame, x, y, r)
+        for x := 0; x < xSize; x++ { 
+           TraceRayForPoint(rayTracedFrame, x, y, xSize, ySize, camera, upperLeftImageCorner)
         }
     }
     
@@ -148,6 +143,33 @@ func main() {
     checkError(err)
 }
 
-func TraceRayForPoint(frame *image.RGBA, x, y int, r raytracer.Ray) {
-    frame.Set(x, y, raytracer.ShootRay(r, raytracer.Scene, 0))
+func TraceRayForPoint(frame *image.RGBA, x, y , maxX, maxY int, camera raytracer.Camera, upperLeftImageCorner raytracer.Vector3) {
+    var red, green, blue float32
+    
+    for s := uint32(0); s < raytracer.MaxAntialiasRays; s++ {
+        u := (float32(x) + rand.Float32()) / float32(maxX)
+        v := (float32(y) + rand.Float32()) / float32(maxY)
+                
+        r := raytracer.Ray{
+            Origin: camera.Origin,
+            Direction: upperLeftImageCorner.Add(camera.ImagePlaneHorizontal.Scale(u)).Add(camera.ImagePlaneVertical.Scale(v)).UnitVector() }
+            
+       color := raytracer.ShootRay(r, raytracer.Scene, 0)
+       
+       red += float32(color.R)
+       green += float32(color.G)
+       blue += float32(color.B)
+    }
+    
+    red /= float32(raytracer.MaxAntialiasRays)
+    green /= float32(raytracer.MaxAntialiasRays)
+    blue /= float32(raytracer.MaxAntialiasRays)
+    
+    c := color.RGBA {
+        R: uint8(red),
+        G: uint8(green),
+        B: uint8(blue),
+        A: 255 }
+    
+    frame.Set(x, y, c)
 }

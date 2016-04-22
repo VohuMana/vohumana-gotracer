@@ -26,6 +26,9 @@ var MaxBounces uint32
 // MaxRaysPerBounce is the maximum number of rays that will be bounced from a single intersection
 var MaxRaysPerBounce uint32
 
+// MaxAntialiasRays is the maximum number of rays that will be shot per pixel for anit aliasing
+var MaxAntialiasRays uint32
+
 // AddObject adds a collidableobject to the scene
 func (w *World) AddObject(name string, obj CollidableObject) {
     w.Scene.addObject(name, obj)
