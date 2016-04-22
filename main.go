@@ -20,6 +20,26 @@ func main() {
     xSize := 3840
     ySize := 2160
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
+    blue := color.RGBA {
+                R:1,
+                G:1,
+                B:255,
+                A: 255 }
+    green := color.RGBA {
+                R: 1,
+                G: 255,
+                B: 1,
+                A: 255 }
+    white := color.RGBA {
+                R: 255,
+                G: 255,
+                B: 255,
+                A: 255 }
+    grey := color.RGBA {
+                R: 128,
+                G: 128,
+                B: 128,
+                A: 255 }
     upperLeftImageCorner := raytracer.Vector3{
         X: 2.0,
         Y: 1.0,
@@ -43,60 +63,48 @@ func main() {
             Y: 0.5,
             Z: -5.0 },
         Radius: 1.0,
-        Properties: raytracer.Material {
+        Properties: raytracer.Metal {
             Fuzziness: 0.0,
-            Color: color.RGBA {
-                R:1,
-                G:1,
-                B:255,
-                A: 255 },
-            IsDiffuse: false } }
+            Color: blue,
+            Attenuation: raytracer.AsVector3(blue) } }
     sphere2 := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 3.0,
             Y: 0.5,
             Z: -5.0 },
         Radius: 1.0,
-        Properties: raytracer.Material {
+        Properties: raytracer.Metal {
             Fuzziness: 0.2,
-            Color: color.RGBA {
-                R: 1,
-                G: 255,
-                B: 1,
-                A: 255 },
-            IsDiffuse: false } }
+            Color: green,
+            Attenuation: raytracer.AsVector3(green) } }
     sphere3 := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: -2.0,
             Y: 0.5,
             Z: -5.0 },
         Radius: 1.0,
-        Properties: raytracer.Material {
+        Properties: raytracer.Metal {
             Fuzziness: 0.1,
-            Color: color.RGBA {
-                R: 255,
-                G: 255,
-                B: 255,
-                A: 255 },
-            IsDiffuse: false } }
+            Color: white,
+            Attenuation: raytracer.AsVector3(white) } }
+    diamondSphere := raytracer.Sphere {
+        Origin: raytracer.Vector3 {
+            X: 0.0,
+            Y: 0.5,
+            Z: -3.0 },
+        Radius: 0.5,
+        Properties: raytracer.Dielectric {
+            RefractiveIndex: 2.4,
+            Attenuation: raytracer.AsVector3(white) } }
     largeSphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.,
             Y: -101.0,
             Z: 0.0 },
         Radius: 100.0,
-        Properties: raytracer.Material {
-            Color: color.RGBA {
-                R: 128,
-                G: 128,
-                B: 128,
-                A: 255 },
-            IsDiffuse: true } }
-            
-    sphere.Properties.Attenuation = raytracer.AsVector3(sphere.Properties.Color)
-    sphere2.Properties.Attenuation = raytracer.AsVector3(sphere2.Properties.Color)
-    sphere3.Properties.Attenuation = raytracer.AsVector3(sphere3.Properties.Color)
-    largeSphere.Properties.Attenuation = raytracer.AsVector3(largeSphere.Properties.Color)
+        Properties: raytracer.Lambertian {
+            Color: grey,
+            Attenuation: raytracer.AsVector3(grey) } }
     
     raytracer.SkyColorBottom = raytracer.AsVector3(color.RGBA {
         R: 255,
@@ -111,10 +119,11 @@ func main() {
     raytracer.Scene.AddObject("sphere1", sphere)
     raytracer.Scene.AddObject("sphere2", sphere2)
     raytracer.Scene.AddObject("sphere3", sphere3)
+    raytracer.Scene.AddObject("diamondSphere", diamondSphere)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
     
-    raytracer.MaxBounces = 16
-    raytracer.MaxRaysPerBounce = 3
+    raytracer.MaxBounces = 5
+    raytracer.MaxRaysPerBounce = 2
     
     rayTracedFrame := image.NewRGBA(bounds)
     
@@ -126,8 +135,8 @@ func main() {
             r := raytracer.Ray{
                 Origin: camera.Origin,
                 Direction: upperLeftImageCorner.Add(camera.ImagePlaneHorizontal.Scale(u)).Add(camera.ImagePlaneVertical.Scale(v)).UnitVector() }
-            
-            rayTracedFrame.Set(x, y, raytracer.ShootRay(r, raytracer.Scene, 0))
+                
+           go TraceRayForPoint(rayTracedFrame, x, y, r)
         }
     }
     
@@ -137,4 +146,8 @@ func main() {
     
     err = png.Encode(outFile, rayTracedFrame)
     checkError(err)
+}
+
+func TraceRayForPoint(frame *image.RGBA, x, y int, r raytracer.Ray) {
+    frame.Set(x, y, raytracer.ShootRay(r, raytracer.Scene, 0))
 }

@@ -4,7 +4,6 @@ import
 (
     "image/color"
     "math"
-    "math/rand"
 )
 
 // Sphere is basic geometry used by the ray tracer
@@ -12,35 +11,6 @@ type Sphere struct {
     Origin Vector3
     Radius float32 
     Properties Material
-}
-
-func createUnitSphereVector() Vector3 {
-    return Vector3 {
-        rand.Float32(),
-        rand.Float32(),
-        rand.Float32() }.Subtract(Vector3 {
-            1.0,
-            1.0,
-            1.0 }).Multiply(Vector3 {
-                2.0,
-                2.0,
-                2.0 })
-}
-
-func  randomVectorInUnitSphere() Vector3 {
-    p := createUnitSphereVector()
-    
-    for p.Dot(p) >= 1.0 {
-        p = createUnitSphereVector()
-    }
-    
-    return p
-}
-
-func restrictValues(num, min, max float32) float32 {
-    num = float32(math.Min(float64(num), float64(max)))
-    num = float32(math.Max(float64(num), float64(min)))
-    return num
 }
 
 // TestIntersection will test for an intersection between the sphere and ray
@@ -74,19 +44,6 @@ func (s Sphere) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionR
     return true, record
 }
 
-func calculateReflectionRay(r Ray, i IntersectionRecord, fuzziness float32) Ray {
-    return Ray {
-        Origin: i.Point,
-        Direction: calculateReflectionVector(r.Direction, i.Normal).Add(randomVectorInUnitSphere().Scale(fuzziness)) }
-}
-
-func calculateDiffuseRay(i IntersectionRecord) Ray {
-        target := i.Point.Add(i.Normal).Add(randomVectorInUnitSphere())
-        return Ray {
-            Origin: i.Point,
-            Direction: target.Subtract(i.Point).UnitVector() }
-}
-
 // GetColor gets the color at a collision point
 func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA {    
     // If the ray has bounced more times than the provided amout return this objects' color
@@ -104,13 +61,7 @@ func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA
     
     // Bounce multiple diffuse rays
     for rays := uint32(0); rays < MaxRaysPerBounce; rays++ {
-        if (s.Properties.IsDiffuse) {
-            // Calculate multiple scattered rays
-            bouncedRay = calculateDiffuseRay(i)
-        } else {
-            // Calculate where this ray would bounce to
-            bouncedRay = calculateReflectionRay(r, i, s.Properties.Fuzziness)
-        }
+        bouncedRay = s.Properties.Scatter(r, i)
         
         color := ShootRay(bouncedRay, Scene, bounces + 1)
         red += float32(color.R)
@@ -130,7 +81,7 @@ func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA
     c.A = uint8(255)        
     
     // Multiply this objects color with the incoming color
-    c = AsVector3(c).Multiply(s.Properties.Attenuation).AsColor()
+    c = AsVector3(c).Multiply(s.Properties.GetAttenuation()).AsColor()
     
     return c
 }
