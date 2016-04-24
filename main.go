@@ -2,6 +2,7 @@ package main
 
 import
 (
+    "fmt"
 	"image"
     "image/color"
 	"image/png"
@@ -91,11 +92,11 @@ func main() {
     diamondSphere := raytracer.Sphere {
         Origin: raytracer.Vector3 {
             X: 0.0,
-            Y: 0.5,
+            Y: 0.0,
             Z: -2.0 },
-        Radius: 0.5,
+        Radius: 0.25,
         Properties: raytracer.Dielectric {
-            RefractiveIndex: 1.3,
+            RefractiveIndex: 2.4,
             Attenuation: raytracer.AsVector3(white) } }
     largeSphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
@@ -128,10 +129,17 @@ func main() {
     raytracer.MaxAntialiasRays = 3
     
     rayTracedFrame := image.NewRGBA(bounds)
+    previousPercent := uint8(0)
     
     for y := 0; y < ySize; y++ {
         for x := 0; x < xSize; x++ { 
-           TraceRayForPoint(rayTracedFrame, x, y, xSize, ySize, camera, upperLeftImageCorner)
+           TraceRayForPoint(rayTracedFrame, x, y, xSize, ySize, &camera, &upperLeftImageCorner)
+        }
+        percentComplete := uint8((float32(y) / float32(ySize)) * 100.0) 
+        
+        if previousPercent != percentComplete {
+            fmt.Printf("%v%% Complete\n", percentComplete)
+            previousPercent = percentComplete   
         }
     }
     
@@ -143,7 +151,7 @@ func main() {
     checkError(err)
 }
 
-func TraceRayForPoint(frame *image.RGBA, x, y , maxX, maxY int, camera raytracer.Camera, upperLeftImageCorner raytracer.Vector3) {
+func TraceRayForPoint(frame *image.RGBA, x, y , maxX, maxY int, camera *raytracer.Camera, upperLeftImageCorner *raytracer.Vector3) {
     var red, green, blue float32
     
     for s := uint32(0); s < raytracer.MaxAntialiasRays; s++ {

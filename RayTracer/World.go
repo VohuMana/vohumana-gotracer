@@ -41,7 +41,7 @@ func (w World) TestCollision(r Ray, tMin, tMax float32) (bool, IntersectionRecor
 
 // ShootRay shoots a ray and tests for intersection
 func ShootRay(r Ray, w World, bounceDepth uint32) color.RGBA {
-    collided, record := w.TestCollision(r, 0.0, math.MaxFloat32)
+    collided, record := w.TestCollision(r, 0.0001, math.MaxFloat32)
     if (collided) {
         return record.Object.GetColor(r, record, bounceDepth)
     }
