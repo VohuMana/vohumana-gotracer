@@ -9,6 +9,7 @@ import
 	"log"
     "math/rand"
 	"os"
+    "time"
     "github.com/vohumana/vohumana-gotracer/raytracer"
 )
 
@@ -135,6 +136,7 @@ func main() {
     rayTracedFrame := image.NewRGBA(bounds)
     communicationChannel = make(chan bool)
     
+    startTime := time.Now()
     fmt.Printf("Beginning ray trace at resolution %v x %v\n", xSize, ySize)
     for y := 0; y < ySize; y++ {
         go RayTraceScanLine(rayTracedFrame, y, xSize, ySize)
@@ -157,6 +159,9 @@ func main() {
             completedRoutines++
         }
     }
+    
+    elapsedTime := time.Since(startTime)
+    fmt.Printf("Render duration was: %v s", elapsedTime.Seconds())
     
     outFile, err := os.Create("rayframe.png")
     checkError(err)
