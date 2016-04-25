@@ -12,6 +12,10 @@ import
     "github.com/vohumana/vohumana-gotracer/raytracer"
 )
 
+var globalCamera raytracer.Camera
+var globalUpperLeftCorner raytracer.Vector3
+var communicationChannel chan bool
+
 func checkError(err error) {
 	if (err != nil) {
 		log.Fatal(err)
@@ -42,11 +46,11 @@ func main() {
                 G: 128,
                 B: 128,
                 A: 255 }
-    upperLeftImageCorner := raytracer.Vector3{
+    globalUpperLeftCorner = raytracer.Vector3{
         X: 2.0,
         Y: 1.0,
         Z: -1.0 }
-    camera := raytracer.Camera{
+    globalCamera = raytracer.Camera{
         Origin: raytracer.Vector3{
             X: 0.0,
             Y: 0.0,
@@ -129,17 +133,28 @@ func main() {
     raytracer.MaxAntialiasRays = 3
     
     rayTracedFrame := image.NewRGBA(bounds)
-    previousPercent := uint8(0)
+    communicationChannel = make(chan bool)
     
+    fmt.Printf("Beginning ray trace at resolution %v x %v\n", xSize, ySize)
     for y := 0; y < ySize; y++ {
-        for x := 0; x < xSize; x++ { 
-           TraceRayForPoint(rayTracedFrame, x, y, xSize, ySize, &camera, &upperLeftImageCorner)
-        }
-        percentComplete := uint8((float32(y) / float32(ySize)) * 100.0) 
+        go RayTraceScanLine(rayTracedFrame, y, xSize, ySize)
+    }
+    
+    fmt.Println("All routines are running, now waiting")
+    
+    previousPercent := uint8(0)
+    completedRoutines := 0
+    for completedRoutines != ySize {
+        percentComplete := uint8((float32(completedRoutines) / float32(ySize)) * 100.0) 
         
         if previousPercent != percentComplete {
             fmt.Printf("%v%% Complete\n", percentComplete)
             previousPercent = percentComplete   
+        }
+        
+        success := <-communicationChannel
+        if success {
+            completedRoutines++
         }
     }
     
@@ -151,33 +166,37 @@ func main() {
     checkError(err)
 }
 
-func TraceRayForPoint(frame *image.RGBA, x, y , maxX, maxY int, camera *raytracer.Camera, upperLeftImageCorner *raytracer.Vector3) {
-    var red, green, blue float32
-    
-    for s := uint32(0); s < raytracer.MaxAntialiasRays; s++ {
-        u := (float32(x) + rand.Float32()) / float32(maxX)
-        v := (float32(y) + rand.Float32()) / float32(maxY)
+func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
+    for x := 0; x < maxX; x++ { 
+        var red, green, blue float32
+        
+        for s := uint32(0); s < raytracer.MaxAntialiasRays; s++ {
+            u := (float32(x) + rand.Float32()) / float32(maxX)
+            v := (float32(y) + rand.Float32()) / float32(maxY)
+                    
+            r := raytracer.Ray{
+                Origin: globalCamera.Origin,
+                Direction: globalUpperLeftCorner.Add(globalCamera.ImagePlaneHorizontal.Scale(u)).Add(globalCamera.ImagePlaneVertical.Scale(v)).UnitVector() }
                 
-        r := raytracer.Ray{
-            Origin: camera.Origin,
-            Direction: upperLeftImageCorner.Add(camera.ImagePlaneHorizontal.Scale(u)).Add(camera.ImagePlaneVertical.Scale(v)).UnitVector() }
-            
-       color := raytracer.ShootRay(r, raytracer.Scene, 0)
-       
-       red += float32(color.R)
-       green += float32(color.G)
-       blue += float32(color.B)
+        color := raytracer.ShootRay(r, raytracer.Scene, 0)
+        
+        red += float32(color.R)
+        green += float32(color.G)
+        blue += float32(color.B)
+        }
+        
+        red /= float32(raytracer.MaxAntialiasRays)
+        green /= float32(raytracer.MaxAntialiasRays)
+        blue /= float32(raytracer.MaxAntialiasRays)
+        
+        c := color.RGBA {
+            R: uint8(red),
+            G: uint8(green),
+            B: uint8(blue),
+            A: 255 }
+        
+        frame.Set(x, y, c)
     }
     
-    red /= float32(raytracer.MaxAntialiasRays)
-    green /= float32(raytracer.MaxAntialiasRays)
-    blue /= float32(raytracer.MaxAntialiasRays)
-    
-    c := color.RGBA {
-        R: uint8(red),
-        G: uint8(green),
-        B: uint8(blue),
-        A: 255 }
-    
-    frame.Set(x, y, c)
+    communicationChannel <- true
 }
