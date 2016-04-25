@@ -91,6 +91,12 @@ func calculateDiffuseRay(i IntersectionRecord) Ray {
             Direction: target.Subtract(i.Point).UnitVector() }
 }
 
+func schlickReflectanceProbability(cosine, refractiveIndex float32) float32 {
+    r0 := (1.0 - refractiveIndex) / (1.0 + refractiveIndex)
+    r0 = r0 * r0
+    return r0 + (1.0 - r0) * float32(math.Pow(float64(1.0 - cosine), 5))
+}
+
 func calculateRefractionVector(incomingVector, normal Vector3, niOverNt float32) (bool, Vector3) {
     dt := incomingVector.Dot(normal)
     discriminant := 1.0 - niOverNt * niOverNt * (1 - dt * dt)
@@ -106,14 +112,18 @@ func calculateRefractedRay(r Ray, i IntersectionRecord, refractiveIndex float32)
     var outwardNormal Vector3
     var niOverNt float32
     var refractedRay Ray
+    var cosine float32
+    var reflectionProbability float32
     reflectionVector := calculateReflectionVector(r.Direction, i.Normal)
     
     if (r.Direction.Dot(i.Normal) > 0.0) {
         outwardNormal = i.Normal.Scale(-1.0)
         niOverNt = refractiveIndex
+        cosine = refractiveIndex * r.Direction.Dot(i.Normal)
     } else {
         outwardNormal = i.Normal
         niOverNt = 1.0 / refractiveIndex
+        cosine = -r.Direction.Dot(i.Normal)
     }
     
     isRefracted, refractedVector := calculateRefractionVector(r.Direction, outwardNormal, niOverNt)
@@ -121,9 +131,15 @@ func calculateRefractedRay(r Ray, i IntersectionRecord, refractiveIndex float32)
     refractedRay.Origin = i.Point
     
     if (isRefracted) {
-        refractedRay.Direction = refractedVector.UnitVector()    
+        reflectionProbability = schlickReflectanceProbability(cosine, refractiveIndex)
     } else {
+        reflectionProbability = 1.0
+    }
+    
+    if (rand.Float32() < reflectionProbability) {
         refractedRay.Direction = reflectionVector
+    } else {
+        refractedRay.Direction = refractedVector.UnitVector()
     }
     
     return refractedRay
