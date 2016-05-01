@@ -14,7 +14,6 @@ import
 )
 
 var globalCamera raytracer.Camera
-var globalUpperLeftCorner raytracer.Vector3
 var communicationChannel chan bool
 
 func checkError(err error) {
@@ -47,23 +46,7 @@ func main() {
                 G: 128,
                 B: 128,
                 A: 255 }
-    globalUpperLeftCorner = raytracer.Vector3{
-        X: 2.0,
-        Y: 1.0,
-        Z: -1.0 }
-    globalCamera = raytracer.Camera{
-        Origin: raytracer.Vector3{
-            X: 0.0,
-            Y: 0.0,
-            Z: 0.0 },
-        ImagePlaneHorizontal: raytracer.Vector3{
-            X: -3.84,
-            Y: 0.0,
-            Z: 0.0 },
-        ImagePlaneVertical: raytracer.Vector3{
-            X: 0.0,
-            Y: -2.16,
-            Z: 0.0 } }
+    globalCamera = raytracer.CreateCamera(120, float32(xSize / ySize))
     sphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.5,
@@ -171,6 +154,7 @@ func main() {
     checkError(err)
 }
 
+// RayTraceScanLine will perform ray tracing for a single line of the image
 func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
     for x := 0; x < maxX; x++ { 
         var red, green, blue float32
@@ -181,7 +165,7 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
                     
             r := raytracer.Ray{
                 Origin: globalCamera.Origin,
-                Direction: globalUpperLeftCorner.Add(globalCamera.ImagePlaneHorizontal.Scale(u)).Add(globalCamera.ImagePlaneVertical.Scale(v)).UnitVector() }
+                Direction: globalCamera.UpperLeftCorner.Add(globalCamera.ImagePlaneHorizontal.Scale(u)).Add(globalCamera.ImagePlaneVertical.Scale(v)).UnitVector() }
                 
         color := raytracer.ShootRay(r, raytracer.Scene, 0)
         
@@ -200,7 +184,8 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
             B: uint8(blue),
             A: 255 }
         
-        frame.Set(x, y, c)
+        // Render upside down because the image is upside down
+        frame.Set(x, maxY - y, c)
     }
     
     communicationChannel <- true

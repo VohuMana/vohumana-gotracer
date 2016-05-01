@@ -17,8 +17,13 @@ type Sphere struct {
 func (s Sphere) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
     var record IntersectionRecord
     
+    // Make a vector from the sphere origin to the ray origin
     m := r.Origin.Subtract(s.Origin)
+    
+    // Dot the direction of the ray and the direction of m.  They must face opposite ways for their to be collision, ie they must have a 0 or negative dot product.
     b := m.Dot(r.Direction)
+    
+    // Subtract the length squared of m and R^2, they should be 0 or less for collision
     c := m.Dot(m) - (s.Radius * s.Radius)
     
     if (c > 0.0 && b > 0.0) {
