@@ -23,8 +23,8 @@ func checkError(err error) {
 }
 
 func main() {
-    xSize := 3840
-    ySize := 2160
+    xSize := 800
+    ySize := 600
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
     blue := color.RGBA {
                 R:1,
@@ -96,12 +96,12 @@ func main() {
             Color: grey,
             Attenuation: raytracer.AsVector3(grey) } }
     
-    raytracer.SkyColorBottom = raytracer.AsVector3(color.RGBA {
+    raytracer.Settings.SkyColorBottom = raytracer.AsVector3(color.RGBA {
         R: 255,
         G: 239,
         B: 138 })
     
-    raytracer.SkyColorTop = raytracer.AsVector3(color.RGBA {
+    raytracer.Settings.SkyColorTop = raytracer.AsVector3(color.RGBA {
         R: 40,
         G: 105,
         B: 209 })
@@ -112,9 +112,13 @@ func main() {
     raytracer.Scene.AddObject("diamondSphere", diamondSphere)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
     
-    raytracer.MaxBounces = 5
-    raytracer.MaxRaysPerBounce = 3
-    raytracer.MaxAntialiasRays = 3
+    raytracer.Settings.MaxBounces = 5
+    raytracer.Settings.MaxRaysPerBounce = 3
+    raytracer.Settings.MaxAntialiasRays = 3
+    
+    // Export the current settings and scene.
+    raytracer.ExportScene("scene.json")
+    raytracer.ExportConfig("config.json")
     
     rayTracedFrame := image.NewRGBA(bounds)
     communicationChannel = make(chan bool)
@@ -159,7 +163,7 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
     for x := 0; x < maxX; x++ { 
         var red, green, blue float32
         
-        for s := uint32(0); s < raytracer.MaxAntialiasRays; s++ {
+        for s := uint32(0); s < raytracer.Settings.MaxAntialiasRays; s++ {
             u := (float32(x) + rand.Float32()) / float32(maxX)
             v := (float32(y) + rand.Float32()) / float32(maxY)
                     
@@ -174,9 +178,9 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
         blue += float32(color.B)
         }
         
-        red /= float32(raytracer.MaxAntialiasRays)
-        green /= float32(raytracer.MaxAntialiasRays)
-        blue /= float32(raytracer.MaxAntialiasRays)
+        red /= float32(raytracer.Settings.MaxAntialiasRays)
+        green /= float32(raytracer.Settings.MaxAntialiasRays)
+        blue /= float32(raytracer.Settings.MaxAntialiasRays)
         
         c := color.RGBA {
             R: uint8(red),
@@ -185,7 +189,7 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
             A: 255 }
         
         // Render upside down because the image is upside down
-        frame.Set(x, maxY - y, c)
+        frame.Set(x, (maxY - 1) - y, c)
     }
     
     communicationChannel <- true

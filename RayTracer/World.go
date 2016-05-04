@@ -2,8 +2,11 @@ package raytracer
 
 import
 (
+    "encoding/json"
     "image/color"
+    "log"
     "math"
+    "os"
 )
 
 // World contains information about the world
@@ -11,23 +14,28 @@ type World struct {
     Scene CollisionList
 }
 
-// SkyColorTop is the color of the sky at the top of the picture
-var SkyColorTop Vector3
+type Config struct {
+    // SkyColorTop is the color of the sky at the top of the picture
+    SkyColorTop Vector3
 
-// SkyColorBottom is the color of the sky at the bottom of the picture
-var SkyColorBottom Vector3
+    // SkyColorBottom is the color of the sky at the bottom of the picture
+    SkyColorBottom Vector3
+
+    // MaxBounces is the maximum number of bounces that can occur before the ray tracer stops reflecting rays
+    MaxBounces uint32
+
+    // MaxRaysPerBounce is the maximum number of rays that will be bounced from a single intersection
+    MaxRaysPerBounce uint32
+
+    // MaxAntialiasRays is the maximum number of rays that will be shot per pixel for anit aliasing
+    MaxAntialiasRays uint32
+}
+
+// Settings contains the current config the ray tracer will use
+var Settings Config 
 
 // Scene is the global variable that should contain the scene
 var Scene World
-
-// MaxBounces is the maximum number of bounces that can occur before the ray tracer stops reflecting rays
-var MaxBounces uint32
-
-// MaxRaysPerBounce is the maximum number of rays that will be bounced from a single intersection
-var MaxRaysPerBounce uint32
-
-// MaxAntialiasRays is the maximum number of rays that will be shot per pixel for anit aliasing
-var MaxAntialiasRays uint32
 
 // AddObject adds a collidableobject to the scene
 func (w *World) AddObject(name string, obj CollidableObject) {
@@ -48,6 +56,58 @@ func ShootRay(r Ray, w World, bounceDepth uint32) color.RGBA {
     
     t := 0.5 * (r.Direction.Y + 1.0)
     // Lerp from blue to white
-    c := SkyColorBottom.Scale(1.0 - t).Add(SkyColorTop.Scale(t)); 
+    c := Settings.SkyColorBottom.Scale(1.0 - t).Add(Settings.SkyColorTop.Scale(t)); 
     return c.AsColor()
+}
+
+func checkError(err error) {
+	if (err != nil) {
+		log.Fatal(err)
+    }
+}
+
+func ExportScene(filename string) {
+    sceneString, err := json.Marshal(Scene.Scene.collisionList)
+    checkError(err)
+    
+    jsonString := []byte{}
+    jsonString = append(jsonString, sceneString...)
+    
+    sceneFile, err := os.Create(filename)
+    checkError(err)
+    defer sceneFile.Close()
+    
+    sceneFile.Write(jsonString)
+}
+
+func ExportConfig(filename string) {
+    // skyColorTopString, err := json.Marshal(Settings.SkyColorTop)
+    // checkError(err)
+    
+    // skyColorBottomString, err := json.Marshal(Settings.SkyColorBottom)
+    // checkError(err)
+    
+    // maxBouncesString, err := json.Marshal(Settings.MaxBounces)
+    // checkError(err)
+    
+    // maxRaysPerBounceString, err := json.Marshal(Settings.MaxRaysPerBounce)
+    // checkError(err)
+    
+    // maxAntiAliasRays, err := json.Marshal(Settings.MaxAntialiasRays)
+    // checkError(err)
+    
+    // jsonString := []byte{}
+    // jsonString = append(jsonString, skyColorTopString...)
+    // jsonString = append(jsonString, skyColorBottomString...)
+    // jsonString = append(jsonString, maxBouncesString...)
+    // jsonString = append(jsonString, maxRaysPerBounceString...)
+    // jsonString = append(jsonString, maxAntiAliasRays...)
+    configString, err := json.Marshal(Settings)
+    checkError(err)
+    
+    configFile, err := os.Create(filename)
+    checkError(err)
+    defer configFile.Close()
+    
+    configFile.Write(configString)
 }

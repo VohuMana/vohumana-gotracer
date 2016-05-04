@@ -52,7 +52,7 @@ func (s Sphere) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionR
 // GetColor gets the color at a collision point
 func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA {    
     // If the ray has bounced more times than the provided amout return this objects' color
-    if (bounces > MaxBounces) {
+    if (bounces > Settings.MaxBounces) {
         return color.RGBA {
             R: 0,
             G: 0,
@@ -65,7 +65,7 @@ func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA
     var red, green, blue float32
     
     // Bounce multiple diffuse rays
-    for rays := uint32(0); rays < MaxRaysPerBounce; rays++ {
+    for rays := uint32(0); rays < Settings.MaxRaysPerBounce; rays++ {
         bouncedRay = s.Properties.Scatter(r, i)
         
         color := ShootRay(bouncedRay, Scene, bounces + 1)
@@ -75,9 +75,9 @@ func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA
     }
     
     // Average the color
-    red /= float32(MaxRaysPerBounce)
-    green /= float32(MaxRaysPerBounce)
-    blue /= float32(MaxRaysPerBounce)
+    red /= float32(Settings.MaxRaysPerBounce)
+    green /= float32(Settings.MaxRaysPerBounce)
+    blue /= float32(Settings.MaxRaysPerBounce)
     
     // Set the averaged color
     c.R = uint8(red)
