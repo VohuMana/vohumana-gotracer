@@ -39,3 +39,21 @@ func CreateCamera(vFov, aspectRatio float32) Camera {
             Y: -halfHeight,
             Z: -1.0 } }
 }
+
+// CreateCameraFromPos will create a camera looking at a point from another point
+func CreateCameraFromPos(lookat, lookfrom, upVec Vector3, vFov, aspectRatio float32) Camera {
+    theta := ConvertDegreesToRadians(vFov)
+    halfHeight := float32(math.Tan(float64(theta / 2.0)))
+    halfWidth := aspectRatio * halfHeight
+    w := lookfrom.Subtract(lookat).UnitVector()
+    u := upVec.Cross(w).UnitVector()
+    v := u.Cross(w).UnitVector()
+    imageVert := v.Scale(2.0 * halfHeight)
+    imageHoriz := u.Scale(2.0 * halfWidth)
+    corner := lookfrom.Add(u.Scale(halfHeight)).Subtract(v.Scale(halfHeight)).Subtract(w)
+    return Camera {
+        Origin: lookfrom,
+        ImagePlaneHorizontal: imageHoriz,
+        ImagePlaneVertical: imageVert,
+        UpperLeftCorner: corner }       
+}

@@ -23,8 +23,8 @@ func checkError(err error) {
 }
 
 func main() {
-    xSize := 800
-    ySize := 600
+    xSize := 1080
+    ySize := 1080
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
     blue := color.RGBA {
                 R:1,
@@ -46,7 +46,22 @@ func main() {
                 G: 128,
                 B: 128,
                 A: 255 }
-    globalCamera = raytracer.CreateCamera(120, float32(xSize / ySize))
+    // globalCamera = raytracer.CreateCameraFromPos(
+    //     raytracer.Vector3 {
+    //         X: 0.0,
+    //         Y: 0.0,
+    //         Z: 0.0 },
+    //     raytracer.Vector3 {
+    //         X: 0.0,
+    //         Y: 0.0,
+    //         Z: -1.0 },
+    //     raytracer.Vector3 {
+    //         X: 0,
+    //         Y: 1.0,
+    //         Z: 0.0 },
+    //     120, 
+    //     float32(xSize) / float32(ySize))
+    globalCamera = raytracer.CreateCamera(120, float32(xSize) / float32(ySize))
     sphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.5,
@@ -169,13 +184,13 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
                     
             r := raytracer.Ray{
                 Origin: globalCamera.Origin,
-                Direction: globalCamera.UpperLeftCorner.Add(globalCamera.ImagePlaneHorizontal.Scale(u)).Add(globalCamera.ImagePlaneVertical.Scale(v)).UnitVector() }
+                Direction: globalCamera.UpperLeftCorner.Add(globalCamera.ImagePlaneHorizontal.Scale(u)).Add(globalCamera.ImagePlaneVertical.Scale(v)).Subtract(globalCamera.Origin).UnitVector() }
                 
-        color := raytracer.ShootRay(r, raytracer.Scene, 0)
-        
-        red += float32(color.R)
-        green += float32(color.G)
-        blue += float32(color.B)
+            color := raytracer.ShootRay(r, raytracer.Scene, 0)
+            
+            red += float32(color.R)
+            green += float32(color.G)
+            blue += float32(color.B)
         }
         
         red /= float32(raytracer.Settings.MaxAntialiasRays)

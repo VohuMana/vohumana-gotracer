@@ -81,27 +81,6 @@ func ExportScene(filename string) {
 }
 
 func ExportConfig(filename string) {
-    // skyColorTopString, err := json.Marshal(Settings.SkyColorTop)
-    // checkError(err)
-    
-    // skyColorBottomString, err := json.Marshal(Settings.SkyColorBottom)
-    // checkError(err)
-    
-    // maxBouncesString, err := json.Marshal(Settings.MaxBounces)
-    // checkError(err)
-    
-    // maxRaysPerBounceString, err := json.Marshal(Settings.MaxRaysPerBounce)
-    // checkError(err)
-    
-    // maxAntiAliasRays, err := json.Marshal(Settings.MaxAntialiasRays)
-    // checkError(err)
-    
-    // jsonString := []byte{}
-    // jsonString = append(jsonString, skyColorTopString...)
-    // jsonString = append(jsonString, skyColorBottomString...)
-    // jsonString = append(jsonString, maxBouncesString...)
-    // jsonString = append(jsonString, maxRaysPerBounceString...)
-    // jsonString = append(jsonString, maxAntiAliasRays...)
     configString, err := json.Marshal(Settings)
     checkError(err)
     
