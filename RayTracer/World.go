@@ -14,6 +14,7 @@ type World struct {
     Scene CollisionList
 }
 
+// Config contains data on how the raytracer will behave
 type Config struct {
     // SkyColorTop is the color of the sky at the top of the picture
     SkyColorTop Vector3

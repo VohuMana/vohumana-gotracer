@@ -23,7 +23,7 @@ func checkError(err error) {
 }
 
 func main() {
-    xSize := 1080
+    xSize := 1920
     ySize := 1080
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
     blue := color.RGBA {
@@ -46,22 +46,22 @@ func main() {
                 G: 128,
                 B: 128,
                 A: 255 }
-    // globalCamera = raytracer.CreateCameraFromPos(
-    //     raytracer.Vector3 {
-    //         X: 0.0,
-    //         Y: 0.0,
-    //         Z: 0.0 },
-    //     raytracer.Vector3 {
-    //         X: 0.0,
-    //         Y: 0.0,
-    //         Z: -1.0 },
-    //     raytracer.Vector3 {
-    //         X: 0,
-    //         Y: 1.0,
-    //         Z: 0.0 },
-    //     120, 
-    //     float32(xSize) / float32(ySize))
-    globalCamera = raytracer.CreateCamera(120, float32(xSize) / float32(ySize))
+    globalCamera = raytracer.CreateCameraFromPos(
+        raytracer.Vector3 {
+            X: 0.5,
+            Y: 0.5,
+            Z: -5.0 },
+        raytracer.Vector3 {
+            X: -2.0,
+            Y: 2.0,
+            Z: -10.0 },
+        raytracer.Vector3 {
+            X: 0.0,
+            Y: 1.0,
+            Z: 0.0 },
+        120, 
+        float32(xSize) / float32(ySize))
+    // globalCamera = raytracer.CreateCamera(120, float32(xSize) / float32(ySize))
     sphere := raytracer.Sphere{
         Origin: raytracer.Vector3{
             X: 0.5,
@@ -127,9 +127,9 @@ func main() {
     raytracer.Scene.AddObject("diamondSphere", diamondSphere)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
     
-    raytracer.Settings.MaxBounces = 5
-    raytracer.Settings.MaxRaysPerBounce = 3
-    raytracer.Settings.MaxAntialiasRays = 3
+    raytracer.Settings.MaxBounces = 4
+    raytracer.Settings.MaxRaysPerBounce = 2
+    raytracer.Settings.MaxAntialiasRays = 5
     
     // Export the current settings and scene.
     raytracer.ExportScene("scene.json")
@@ -204,7 +204,7 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
             A: 255 }
         
         // Render upside down because the image is upside down
-        frame.Set(x, (maxY - 1) - y, c)
+        frame.Set(x, y, c)
     }
     
     communicationChannel <- true
