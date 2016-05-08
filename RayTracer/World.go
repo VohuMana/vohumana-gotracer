@@ -4,6 +4,7 @@ import
 (
     "encoding/json"
     "image/color"
+    "io"
     "log"
     "math"
     "os"
@@ -67,6 +68,7 @@ func checkError(err error) {
     }
 }
 
+// ExportScene will export the current global scene
 func ExportScene(filename string) {
     sceneString, err := json.Marshal(Scene.Scene.collisionList)
     checkError(err)
@@ -81,6 +83,7 @@ func ExportScene(filename string) {
     sceneFile.Write(jsonString)
 }
 
+// ExportConfig will export the current global config
 func ExportConfig(filename string) {
     configString, err := json.Marshal(Settings)
     checkError(err)
@@ -90,4 +93,24 @@ func ExportConfig(filename string) {
     defer configFile.Close()
     
     configFile.Write(configString)
+}
+
+// ImportConfig will import a config file to the global config
+func ImportConfig(filename string) {
+    configFile, err := os.Open(filename)
+    checkError(err)
+    defer configFile.Close()
+    
+    info, err := configFile.Stat()
+    checkError(err)
+    
+    contents := make([]byte, info.Size())
+    
+    _, err = configFile.Read(contents)
+    if (err != nil && io.EOF != err) {
+        checkError(err)   
+    }
+    
+    err = json.Unmarshal(contents, &Settings)
+    checkError(err)
 }

@@ -23,6 +23,7 @@ func checkError(err error) {
 }
 
 func main() {
+    raytracer.ImportConfig("config.json")
     xSize := 1920
     ySize := 1080
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
@@ -111,25 +112,11 @@ func main() {
             Color: grey,
             Attenuation: raytracer.AsVector3(grey) } }
     
-    raytracer.Settings.SkyColorBottom = raytracer.AsVector3(color.RGBA {
-        R: 255,
-        G: 239,
-        B: 138 })
-    
-    raytracer.Settings.SkyColorTop = raytracer.AsVector3(color.RGBA {
-        R: 40,
-        G: 105,
-        B: 209 })
-    
     raytracer.Scene.AddObject("sphere1", sphere)
     raytracer.Scene.AddObject("sphere2", sphere2)
     raytracer.Scene.AddObject("sphere3", sphere3)
     raytracer.Scene.AddObject("diamondSphere", diamondSphere)
     raytracer.Scene.AddObject("largeSphere", largeSphere)
-    
-    raytracer.Settings.MaxBounces = 4
-    raytracer.Settings.MaxRaysPerBounce = 2
-    raytracer.Settings.MaxAntialiasRays = 5
     
     // Export the current settings and scene.
     raytracer.ExportScene("scene.json")
