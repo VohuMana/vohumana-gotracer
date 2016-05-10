@@ -2,13 +2,19 @@ package raytracer
 
 import
 (
+    "encoding/json"
+    "io"
     "math"
+    "os"
 )
 
 // Camera is a struct to contain info about our virtual camera
 type Camera struct {
     Origin, ImagePlaneHorizontal, ImagePlaneVertical, UpperLeftCorner Vector3
 }
+
+// GlobalCamera is the main camera object used in rendering
+var GlobalCamera Camera
 
 // ConvertDegreesToRadians will convert the given degrees to radians
 func ConvertDegreesToRadians(degrees float32) float32 {
@@ -56,4 +62,36 @@ func CreateCameraFromPos(lookat, lookfrom, upVec Vector3, vFov, aspectRatio floa
         ImagePlaneHorizontal: imageHoriz,
         ImagePlaneVertical: imageVert,
         UpperLeftCorner: corner }       
+}
+
+// ExportCamera will export the current global camera
+func ExportCamera(filename string) {
+    cameraString, err := json.Marshal(GlobalCamera)
+    checkError(err)
+    
+    cameraFile, err := os.Create(filename)
+    checkError(err)
+    defer cameraFile.Close()
+    
+    cameraFile.Write(cameraString)
+}
+
+// ImportCamera will import a camera json file into the global camera
+func ImportCamera(filename string) {
+    cameraFile, err := os.Open(filename)
+    checkError(err)
+    defer cameraFile.Close()
+    
+    info, err := cameraFile.Stat()
+    checkError(err)
+    
+    contents := make([]byte, info.Size())
+    
+    _, err = cameraFile.Read(contents)
+    if (err != nil && io.EOF != err) {
+        checkError(err)   
+    }
+    
+    err = json.Unmarshal(contents, &GlobalCamera)
+    checkError(err)
 }

@@ -2,6 +2,7 @@ package main
 
 import
 (
+    "flag"
     "fmt"
 	"image"
     "image/color"
@@ -13,7 +14,6 @@ import
     "github.com/vohumana/vohumana-gotracer/raytracer"
 )
 
-var globalCamera raytracer.Camera
 var communicationChannel chan bool
 
 func checkError(err error) {
@@ -23,28 +23,29 @@ func checkError(err error) {
 }
 
 func main() {
-    raytracer.ImportConfig("config.json")
-    raytracer.ImportScene("scene.json")
+    var configFilename string
+    var sceneFilename string
+    var cameraFilename string
+    
+    // Get command line parameters
+	flag.StringVar(&configFilename, "config", "", "JSON filename describing how the ray tracer should render")
+	flag.StringVar(&sceneFilename, "scene", "", "JSON filename containing the scene to render")
+	flag.StringVar(&cameraFilename, "camera", "", "JSON filename containing the camera position and stats")
+	flag.Parse()
+
+	if (configFilename == "" || sceneFilename == "" || cameraFilename == "") {
+		flag.PrintDefaults()
+		return
+	}
+    
+    raytracer.ImportConfig(configFilename)
+    raytracer.ImportScene(sceneFilename)
+    raytracer.ImportCamera(cameraFilename)
+    
     xSize := raytracer.Settings.WidthInPixels
     ySize := raytracer.Settings.HeightInPixels
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
-    globalCamera = raytracer.CreateCameraFromPos(
-        raytracer.Vector3 {
-            X: 0.5,
-            Y: 0.5,
-            Z: -5.0 },
-        raytracer.Vector3 {
-            X: -0.5,
-            Y: 2.0,
-            Z: -7.0 },
-        raytracer.Vector3 {
-            X: 0.0,
-            Y: 1.0,
-            Z: 0.0 },
-        120, 
-        float32(xSize) / float32(ySize))
-    // globalCamera = raytracer.CreateCamera(120, float32(xSize) / float32(ySize))
-    
+
     rayTracedFrame := image.NewRGBA(bounds)
     communicationChannel = make(chan bool)
     
@@ -93,8 +94,8 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
             v := (float32(y) + rand.Float32()) / float32(maxY)
                     
             r := raytracer.Ray{
-                Origin: globalCamera.Origin,
-                Direction: globalCamera.UpperLeftCorner.Add(globalCamera.ImagePlaneHorizontal.Scale(u)).Add(globalCamera.ImagePlaneVertical.Scale(v)).Subtract(globalCamera.Origin).UnitVector() }
+                Origin: raytracer.GlobalCamera.Origin,
+                Direction: raytracer.GlobalCamera.UpperLeftCorner.Add(raytracer.GlobalCamera.ImagePlaneHorizontal.Scale(u)).Add(raytracer.GlobalCamera.ImagePlaneVertical.Scale(v)).Subtract(raytracer.GlobalCamera.Origin).UnitVector() }
                 
             color := raytracer.ShootRay(r, raytracer.Scene, 0)
             
