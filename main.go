@@ -25,8 +25,8 @@ func checkError(err error) {
 func main() {
     raytracer.ImportConfig("config.json")
     raytracer.ImportScene("scene.json")
-    xSize := 1920
-    ySize := 1080
+    xSize := raytracer.Settings.WidthInPixels
+    ySize := raytracer.Settings.HeightInPixels
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
     globalCamera = raytracer.CreateCameraFromPos(
         raytracer.Vector3 {
@@ -34,9 +34,9 @@ func main() {
             Y: 0.5,
             Z: -5.0 },
         raytracer.Vector3 {
-            X: -2.0,
+            X: -0.5,
             Y: 2.0,
-            Z: -10.0 },
+            Z: -7.0 },
         raytracer.Vector3 {
             X: 0.0,
             Y: 1.0,

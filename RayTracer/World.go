@@ -31,6 +31,12 @@ type Config struct {
 
     // MaxAntialiasRays is the maximum number of rays that will be shot per pixel for anit aliasing
     MaxAntialiasRays uint32
+    
+    // WidthInPixels is the horizontal resolution of the resulting image
+    WidthInPixels int
+    
+    // HeightInPixels is the vertical resolution of the resulting image    
+    HeightInPixels int
 }
 
 // Settings contains the current config the ray tracer will use
