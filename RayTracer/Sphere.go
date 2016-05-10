@@ -90,3 +90,49 @@ func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA
     
     return c
 }
+
+func deserializeSphere(object map[string]interface{}) (Sphere, bool) {
+    var sphere Sphere
+    validSphere := true
+    
+    for name, object := range object {
+        switch name {
+            case "Origin":
+                origin, ok := object.(map[string]interface{})
+                if (true == ok) {
+                    sphere.Origin, ok = deserializeVector3(origin)
+                    if (false == ok) {
+                        validSphere = false
+                        break;
+                    }
+                }
+                
+            case "Radius":
+                radius, ok := object.(float64)
+                if (true == ok) {
+                    sphere.Radius = float32(radius)
+                } else {
+                    validSphere = false
+                    break;
+                }
+                
+            case "Properties":
+                prop, ok := object.(map[string]interface{})
+                if (true == ok) {
+                    mat, ok := deserializeMaterial(prop)
+                    if (true == ok) {
+                        sphere.Properties = mat
+                    } else {
+                        validSphere = false
+                        break;
+                    }    
+                }
+            
+            default:
+                validSphere = false
+                break
+        }
+    }
+    
+    return sphere, validSphere
+}

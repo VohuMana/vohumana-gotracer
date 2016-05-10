@@ -2,6 +2,7 @@ package raytracer
 
 import
 (
+    "encoding/json"
     "image/color"
     "math"
     "math/rand"
@@ -173,4 +174,32 @@ func (d Dielectric) Scatter(r Ray, i IntersectionRecord) Ray {
 // GetAttenuation gets the dielectric attenuation
 func (d Dielectric) GetAttenuation() Vector3 {
     return d.Attenuation
+}
+
+func deserializeMaterial(object map[string]interface{}) (Material, bool) {
+    b, err := json.Marshal(object)
+    if (err != nil) {
+        checkError(err)
+    }
+    
+    // If Fuzziness exists in the object then it must be a metal
+    if nil != object["Fuzziness"] {
+        var metal Metal
+        if err := json.Unmarshal(b, &metal); err == nil {
+            return metal, true
+        }
+    // If RefractiveIndex is in the object then it must be a dielectric
+    } else if nil != object["RefractiveIndex"] {
+        var dielectric Dielectric
+        if err := json.Unmarshal(b, &dielectric); err == nil {
+            return dielectric, true
+        }
+    }
+    
+    var lambert Lambertian
+    if err := json.Unmarshal(b, &lambert); err == nil {
+        return lambert, true
+    }
+    
+    return nil, false
 }

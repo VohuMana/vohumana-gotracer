@@ -2,6 +2,7 @@ package raytracer
 
 import
 (
+    "encoding/json"
     "image/color"
     "math"
 )
@@ -94,4 +95,17 @@ func AsVector3(c color.RGBA) Vector3 {
         X: float32(c.R) / float32(math.MaxUint8),
         Y: float32(c.G) / float32(math.MaxUint8),
         Z: float32(c.B) / float32(math.MaxUint8) }    
+}
+
+func deserializeVector3(object map[string]interface{}) (Vector3, bool) {
+    b, err := json.Marshal(object)
+    if (err != nil) {
+        checkError(err)
+    }
+    
+    var vec Vector3
+    err = json.Unmarshal(b, &vec)
+    checkError(err)
+    
+    return vec, true
 }

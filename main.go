@@ -24,29 +24,10 @@ func checkError(err error) {
 
 func main() {
     raytracer.ImportConfig("config.json")
+    raytracer.ImportScene("scene.json")
     xSize := 1920
     ySize := 1080
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}
-    blue := color.RGBA {
-                R:1,
-                G:1,
-                B:255,
-                A: 255 }
-    green := color.RGBA {
-                R: 1,
-                G: 255,
-                B: 1,
-                A: 255 }
-    white := color.RGBA {
-                R: 255,
-                G: 255,
-                B: 255,
-                A: 255 }
-    grey := color.RGBA {
-                R: 128,
-                G: 128,
-                B: 128,
-                A: 255 }
     globalCamera = raytracer.CreateCameraFromPos(
         raytracer.Vector3 {
             X: 0.5,
@@ -63,64 +44,6 @@ func main() {
         120, 
         float32(xSize) / float32(ySize))
     // globalCamera = raytracer.CreateCamera(120, float32(xSize) / float32(ySize))
-    sphere := raytracer.Sphere{
-        Origin: raytracer.Vector3{
-            X: 0.5,
-            Y: 0.5,
-            Z: -5.0 },
-        Radius: 1.0,
-        Properties: raytracer.Metal {
-            Fuzziness: 0.0,
-            Color: blue,
-            Attenuation: raytracer.AsVector3(blue) } }
-    sphere2 := raytracer.Sphere{
-        Origin: raytracer.Vector3{
-            X: 3.0,
-            Y: 0.5,
-            Z: -5.0 },
-        Radius: 1.0,
-        Properties: raytracer.Metal {
-            Fuzziness: 0.2,
-            Color: green,
-            Attenuation: raytracer.AsVector3(green) } }
-    sphere3 := raytracer.Sphere{
-        Origin: raytracer.Vector3{
-            X: -2.0,
-            Y: 0.5,
-            Z: -5.0 },
-        Radius: 1.0,
-        Properties: raytracer.Metal {
-            Fuzziness: 0.1,
-            Color: white,
-            Attenuation: raytracer.AsVector3(white) } }
-    diamondSphere := raytracer.Sphere {
-        Origin: raytracer.Vector3 {
-            X: 0.0,
-            Y: 0.0,
-            Z: -2.0 },
-        Radius: 0.25,
-        Properties: raytracer.Dielectric {
-            RefractiveIndex: 2.4,
-            Attenuation: raytracer.AsVector3(white) } }
-    largeSphere := raytracer.Sphere{
-        Origin: raytracer.Vector3{
-            X: 0.,
-            Y: -101.0,
-            Z: 0.0 },
-        Radius: 100.0,
-        Properties: raytracer.Lambertian {
-            Color: grey,
-            Attenuation: raytracer.AsVector3(grey) } }
-    
-    raytracer.Scene.AddObject("sphere1", sphere)
-    raytracer.Scene.AddObject("sphere2", sphere2)
-    raytracer.Scene.AddObject("sphere3", sphere3)
-    raytracer.Scene.AddObject("diamondSphere", diamondSphere)
-    raytracer.Scene.AddObject("largeSphere", largeSphere)
-    
-    // Export the current settings and scene.
-    raytracer.ExportScene("scene.json")
-    raytracer.ExportConfig("config.json")
     
     rayTracedFrame := image.NewRGBA(bounds)
     communicationChannel = make(chan bool)

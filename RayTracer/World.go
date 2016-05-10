@@ -83,6 +83,42 @@ func ExportScene(filename string) {
     sceneFile.Write(jsonString)
 }
 
+// ImportScene will import the given scene file
+func ImportScene(filename string) {
+    sceneFile, err := os.Open(filename)
+    checkError(err)
+    defer sceneFile.Close()
+    
+    info, err := sceneFile.Stat()
+    checkError(err)
+    
+    contents := make([]byte, info.Size())
+    
+    _, err = sceneFile.Read(contents)
+    if (err != nil && io.EOF != err) {
+        checkError(err)   
+    }
+    
+    var sceneObjects map[string]interface{}
+    err = json.Unmarshal(contents, &sceneObjects)
+    checkError(err)
+    
+    for name, object := range sceneObjects {
+        switch object.(type) {
+            case map[string]interface{}:
+                obj, ok := object.(map[string]interface{})
+                if (true == ok) {
+                    s, isSphere := deserializeSphere(obj)
+                    if (true == isSphere) {
+                        Scene.AddObject(name, s)
+                    }    
+                }
+            default:
+                continue
+        }
+    }    
+}
+
 // ExportConfig will export the current global config
 func ExportConfig(filename string) {
     configString, err := json.Marshal(Settings)
