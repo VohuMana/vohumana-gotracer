@@ -13,8 +13,16 @@ type Camera struct {
     Origin, ImagePlaneHorizontal, ImagePlaneVertical, UpperLeftCorner Vector3
 }
 
+type cameraConfig struct {
+    LookFrom, LookAt Vector3
+    Fov float32
+}
+
 // GlobalCamera is the main camera object used in rendering
 var GlobalCamera Camera
+
+// cameraSettings is the global camera settings object
+var cameraSettings cameraConfig
 
 // ConvertDegreesToRadians will convert the given degrees to radians
 func ConvertDegreesToRadians(degrees float32) float32 {
@@ -48,6 +56,10 @@ func CreateCamera(vFov, aspectRatio float32) Camera {
 
 // CreateCameraFromPos will create a camera looking at a point from another point
 func CreateCameraFromPos(lookat, lookfrom, upVec Vector3, vFov, aspectRatio float32) Camera {
+    cameraSettings.LookAt = lookat
+    cameraSettings.LookFrom = lookfrom
+    cameraSettings.Fov = vFov
+    
     theta := ConvertDegreesToRadians(vFov)
     halfHeight := float32(math.Tan(float64(theta / 2.0)))
     halfWidth := aspectRatio * halfHeight
@@ -66,7 +78,7 @@ func CreateCameraFromPos(lookat, lookfrom, upVec Vector3, vFov, aspectRatio floa
 
 // ExportCamera will export the current global camera
 func ExportCamera(filename string) {
-    cameraString, err := json.Marshal(GlobalCamera)
+    cameraString, err := json.Marshal(cameraSettings)
     checkError(err)
     
     cameraFile, err := os.Create(filename)
@@ -91,7 +103,17 @@ func ImportCamera(filename string) {
     if (err != nil && io.EOF != err) {
         checkError(err)   
     }
-    
-    err = json.Unmarshal(contents, &GlobalCamera)
+
+    err = json.Unmarshal(contents, &cameraSettings)
     checkError(err)
+    
+    GlobalCamera = CreateCameraFromPos(
+        cameraSettings.LookAt, 
+        cameraSettings.LookFrom,
+        Vector3 {
+            X: 0.0,
+            Y: 1.0,
+            Z: 0.0 },
+       cameraSettings.Fov,
+       float32(Settings.WidthInPixels) / float32(Settings.HeightInPixels))
 }
