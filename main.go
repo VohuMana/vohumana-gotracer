@@ -42,6 +42,14 @@ func main() {
     raytracer.ImportScene(sceneFilename)
     raytracer.ImportCamera(cameraFilename)
     
+    // emissiveSphere := raytracer.Sphere {
+    //     Origin: raytracer.NewVector3(0.0, 4, -5),
+    //     Radius: 1.0,
+    //     Properties: raytracer.Emissive {
+    //         Emission: raytracer.NewVector3(1.0, 1.0, 1.0) } }
+    
+    // raytracer.Scene.AddObject("emissiveSphere", emissiveSphere)
+    
     xSize := raytracer.Settings.WidthInPixels
     ySize := raytracer.Settings.HeightInPixels
     bounds := image.Rectangle{image.Point{0,0}, image.Point{xSize, ySize}}

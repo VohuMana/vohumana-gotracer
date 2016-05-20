@@ -12,6 +12,8 @@ import
 type Material interface {
     Scatter(r Ray, i IntersectionRecord) Ray
     GetAttenuation() Vector3
+    GetEmission() Vector3
+    IsEmissive() bool
 }
 
 // Lambertian is a type of material that scatters rays randomly, used for diffuse objectss
@@ -31,6 +33,11 @@ type Metal struct {
 type Dielectric struct {
     RefractiveIndex float32
     Attenuation Vector3
+}
+
+// Emissive is a type of material that glows
+type Emissive struct {
+    Emission Vector3
 }
 
 // calculateReflectionVector calulates a reflection vector with direction d and normal n. r = d - 2(n dot d)*n
@@ -156,6 +163,15 @@ func (l Lambertian) GetAttenuation() Vector3 {
     return l.Attenuation
 }
 
+// GetEmission returns the emissive component for lights, lambertian has no emissive component
+func (l Lambertian) GetEmission() Vector3 {
+    return NewVector3(0.0, 0.0, 0.0)
+}
+
+func (l Lambertian) IsEmissive() bool {
+    return false
+}
+
 // Scatter for metal materials
 func (m Metal) Scatter(r Ray, i IntersectionRecord) Ray {
     return calculateReflectionRay(r, i, m.Fuzziness)
@@ -166,6 +182,15 @@ func (m Metal) GetAttenuation() Vector3 {
     return m.Attenuation
 }
 
+// GetEmission returns the emissive component for lights, metal has no emissive component
+func (m Metal) GetEmission() Vector3 {
+    return NewVector3(0.0, 0.0, 0.0)
+}
+
+func (m Metal) IsEmissive() bool {
+    return false
+}
+
 // Scatter refracts rays for dielectric materials
 func (d Dielectric) Scatter(r Ray, i IntersectionRecord) Ray {
     return calculateRefractedRay(r, i, d.RefractiveIndex)
@@ -174,6 +199,34 @@ func (d Dielectric) Scatter(r Ray, i IntersectionRecord) Ray {
 // GetAttenuation gets the dielectric attenuation
 func (d Dielectric) GetAttenuation() Vector3 {
     return d.Attenuation
+}
+
+// GetEmission returns the emissive component for lights, dielectric has no emissive component
+func (d Dielectric) GetEmission() Vector3 {
+    return NewVector3(0.0, 0.0, 0.0)
+}
+
+func (d Dielectric) IsEmissive() bool {
+    return false
+}
+
+// Scatter does nothing for an emissive material
+func (e Emissive) Scatter(r Ray, i IntersectionRecord) Ray {
+    return Ray{}
+}
+
+// GetAttenuation reutrns the emissive color
+func (e Emissive) GetAttenuation() Vector3 {
+    return NewVector3(0.0, 0.0, 0.0)
+}
+
+// GetEmission reutrns the emissive
+func (e Emissive) GetEmission() Vector3 {
+    return e.Emission
+}
+
+func (e Emissive) IsEmissive() bool {
+    return true
 }
 
 func deserializeMaterial(object map[string]interface{}) (Material, bool) {

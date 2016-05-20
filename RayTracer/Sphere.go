@@ -54,39 +54,44 @@ func (s Sphere) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA
     // If the ray has bounced more times than the provided amout return this objects' color
     if (bounces > Settings.MaxBounces) {
         return color.RGBA {
-            R: 0,
-            G: 0,
-            B: 0,
+            R: 255,
+            G: 255,
+            B: 255,
             A: 255 }
     }
     
     var bouncedRay Ray
     var c color.RGBA
-    var red, green, blue float32
     
-    // Bounce multiple diffuse rays
-    for rays := uint32(0); rays < Settings.MaxRaysPerBounce; rays++ {
-        bouncedRay = s.Properties.Scatter(r, i)
+    if (false == s.Properties.IsEmissive()) {
+        var red, green, blue float32
+    
+        // Bounce multiple diffuse rays
+        for rays := uint32(0); rays < Settings.MaxRaysPerBounce; rays++ {
+            bouncedRay = s.Properties.Scatter(r, i)
+            
+            color := ShootRay(bouncedRay, Scene, bounces + 1)
+            red += float32(color.R)
+            green += float32(color.G)
+            blue += float32(color.B)
+        }
         
-        color := ShootRay(bouncedRay, Scene, bounces + 1)
-        red += float32(color.R)
-        green += float32(color.G)
-        blue += float32(color.B)
+        // Average the color
+        red /= float32(Settings.MaxRaysPerBounce)
+        green /= float32(Settings.MaxRaysPerBounce)
+        blue /= float32(Settings.MaxRaysPerBounce)
+        
+        // Set the averaged color
+        c.R = uint8(red)
+        c.G = uint8(green)
+        c.B = uint8(blue)
+        c.A = uint8(255)        
+        
+        // Multiply this objects color with the incoming color
+        c = AsVector3(c).Multiply(s.Properties.GetAttenuation()).AsColor()    
+    } else {
+        c = s.Properties.GetEmission().AsColor()
     }
-    
-    // Average the color
-    red /= float32(Settings.MaxRaysPerBounce)
-    green /= float32(Settings.MaxRaysPerBounce)
-    blue /= float32(Settings.MaxRaysPerBounce)
-    
-    // Set the averaged color
-    c.R = uint8(red)
-    c.G = uint8(green)
-    c.B = uint8(blue)
-    c.A = uint8(255)        
-    
-    // Multiply this objects color with the incoming color
-    c = AsVector3(c).Multiply(s.Properties.GetAttenuation()).AsColor()
     
     return c
 }

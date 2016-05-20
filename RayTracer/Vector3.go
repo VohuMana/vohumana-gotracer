@@ -97,6 +97,14 @@ func AsVector3(c color.RGBA) Vector3 {
         Z: float32(c.B) / float32(math.MaxUint8) }    
 }
 
+// NewVector3 creates a new vector3
+func NewVector3(x, y, z float32) Vector3 {
+    return Vector3 {
+        X: x,
+        Y: y,
+        Z: z }
+}
+
 func deserializeVector3(object map[string]interface{}) (Vector3, bool) {
     b, err := json.Marshal(object)
     if (err != nil) {
