@@ -2,7 +2,7 @@ package main
 
 import
 (
-    "flag"
+    // "flag"
     "fmt"
 	"image"
     "image/color"
@@ -24,31 +24,111 @@ func checkError(err error) {
 
 func main() {
     var configFilename string
-    var sceneFilename string
+    // var sceneFilename string
     var cameraFilename string
     
     // Get command line parameters
-	flag.StringVar(&configFilename, "config", "", "JSON filename describing how the ray tracer should render")
-	flag.StringVar(&sceneFilename, "scene", "", "JSON filename containing the scene to render")
-	flag.StringVar(&cameraFilename, "camera", "", "JSON filename containing the camera position and stats")
-	flag.Parse()
+	// flag.StringVar(&configFilename, "config", "", "JSON filename describing how the ray tracer should render")
+	// flag.StringVar(&sceneFilename, "scene", "", "JSON filename containing the scene to render")
+	// flag.StringVar(&cameraFilename, "camera", "", "JSON filename containing the camera position and stats")
+	// flag.Parse()
 
-	if (configFilename == "" || sceneFilename == "" || cameraFilename == "") {
-		flag.PrintDefaults()
-		return
-	}
-    
+	// if (configFilename == "" || sceneFilename == "" || cameraFilename == "") {
+	// 	flag.PrintDefaults()
+	// 	return
+	// }
+    configFilename = "jsonfiles\\configFast.json"
+    cameraFilename = "SceneGenerator\\camera.json"
     raytracer.ImportConfig(configFilename)
-    raytracer.ImportScene(sceneFilename)
+    // raytracer.ImportScene(sceneFilename)
     raytracer.ImportCamera(cameraFilename)
     
-    // emissiveSphere := raytracer.Sphere {
-    //     Origin: raytracer.NewVector3(0.0, 4, -5),
-    //     Radius: 1.0,
-    //     Properties: raytracer.Emissive {
-    //         Emission: raytracer.NewVector3(1.0, 1.0, 1.0) } }
+    light := raytracer.NewPointLight(
+        raytracer.Vector3{}, 
+        raytracer.Vector3 {
+        Y: 0,
+        Z: 0 }, 
+        0.3)
+        
+    raytracer.Scene.AddLight("light", light)
     
-    // raytracer.Scene.AddObject("emissiveSphere", emissiveSphere)
+    redPhong := raytracer.NewPhong(
+        color.RGBA {
+            R: 255 },
+        0.0,
+        4)
+        
+    bluePhong := raytracer.NewPhong(
+        color.RGBA {
+            B: 255 },
+        0.6,
+        4 )
+        
+    metal := raytracer.NewMetal(
+        color.RGBA {
+            R: 255,
+            G: 255,
+            B: 255 },
+        0.98,
+        4,
+        0.0)
+        
+    fuzzyMetal := raytracer.NewMetal(
+        color.RGBA {
+            R: 255,
+            B: 255 },
+        0.98,
+        4,
+        0.7 )
+        
+    diamond := raytracer.NewDielectric(0.05, 4, 2.4)    
+      
+    topSphere := raytracer.NewSphere(
+        raytracer.Vector3 {
+            X: 0,
+            Y: 3,
+            Z: -5 },
+        1.5,
+        redPhong)
+            
+    bottomSphere := raytracer.NewSphere(
+        raytracer.Vector3 {
+            X: 0,
+            Y: -3,
+            Z: -5 },
+        1.5,
+        bluePhong)
+            
+    leftSphere := raytracer.NewSphere(
+        raytracer.Vector3 {
+            X: -3,
+            Y: 0,
+            Z: -5},
+        1.5,
+        metal)
+            
+    rightSphere := raytracer.NewSphere(
+        raytracer.Vector3 {
+            X: 3,
+            Y: 0,
+            Z: -5 },
+        1.5,
+        fuzzyMetal)
+            
+    middleSphere := raytracer.NewSphere(
+        raytracer.Vector3 {
+            X: 0,
+            Y: 0,
+            Z: -4},
+        0.75,
+        diamond)
+        
+    raytracer.Scene.AddObject("topSphere", topSphere)
+    raytracer.Scene.AddObject("bottomSphere", bottomSphere)
+    raytracer.Scene.AddObject("leftSphere", leftSphere)
+    raytracer.Scene.AddObject("rightSphere", rightSphere)
+    raytracer.Scene.AddObject("middleSphere", middleSphere)
+    raytracer.Settings.MaxLightRays = 1
     
     xSize := raytracer.Settings.WidthInPixels
     ySize := raytracer.Settings.HeightInPixels

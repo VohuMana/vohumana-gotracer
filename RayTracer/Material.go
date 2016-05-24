@@ -10,34 +10,13 @@ import
 
 // Material is a interface that returns where a scattered ray will be when it reflects off an object
 type Material interface {
-    Scatter(r Ray, i IntersectionRecord) Ray
-    GetAttenuation() Vector3
-    GetEmission() Vector3
-    IsEmissive() bool
+    GetColor(r Ray, i IntersectionRecord, w World, bounceDepth uint32) color.RGBA
 }
 
 // Lambertian is a type of material that scatters rays randomly, used for diffuse objectss
 type Lambertian struct {
     Color color.RGBA
     Attenuation Vector3
-}
-
-// Metal is a type of material that reflects rays
-type Metal struct {
-    Color color.RGBA
-    Fuzziness float32
-    Attenuation Vector3
-}
-
-// Dielectric is a type of material that refracts rays
-type Dielectric struct {
-    RefractiveIndex float32
-    Attenuation Vector3
-}
-
-// Emissive is a type of material that glows
-type Emissive struct {
-    Emission Vector3
 }
 
 // calculateReflectionVector calulates a reflection vector with direction d and normal n. r = d - 2(n dot d)*n
@@ -153,6 +132,61 @@ func calculateRefractedRay(r Ray, i IntersectionRecord, refractiveIndex float32)
     return refractedRay
 }
 
+func calculatePhongLighting(p Phong, i IntersectionRecord, reflectRay Ray, w World, bounceDepth uint32) color.RGBA {
+    var color Vector3
+    
+    // Add up the contribution of all light sources
+    for _, light := range w.Lights.lights {
+        color = color.Add(computeColorContributionFromLight(light, &i, &w, &p, &reflectRay))
+    } 
+    
+    // Get the color of anything that might have been reflected
+    reflectedColor := AsVector3(ShootRay(reflectRay, w, bounceDepth + 1)).Scale(p.Reflectivity)
+    
+    return color.Add(reflectedColor).AsColor()
+}
+
+func computeColorContributionFromLight(light Light, i *IntersectionRecord, w *World, p *Phong, reflectRay *Ray) Vector3 {
+    var color Vector3
+    
+    for samples := uint32(0); samples < Settings.MaxLightRays; samples++ {
+        lightVector := light.GetPosition().Subtract(i.Point).UnitVector()
+        distance := float32(lightVector.Length())
+        //lightVector = lightVector.Add(randomVectorInUnitSphere().Scale(distance)).UnitVector()
+        
+        lightRay := Ray {
+            Origin: i.Point,
+            Direction: lightVector }
+        
+        isShadow, _ := w.TestCollision(lightRay, 0.001, distance)
+        
+        // Contribute no color if the object is in shadow
+        if (isShadow) {
+            // TODO: Add ambient
+            continue
+        }
+        
+        // Calculate the diffuse coefficient 
+        diffuse := (1.0 - p.Reflectivity) * i.Normal.Dot(lightVector) * light.GetPower()
+        
+        // Calculate the vector to the camera
+        cameraVector := GlobalCamera.Origin.Subtract(i.Point).UnitVector()
+        
+        // Calculate the specular coefficient        
+        specular := float32(math.Max(0.0, math.Pow(float64(reflectRay.Direction.Dot(cameraVector)), float64(p.Shininess)))) * light.GetPower()
+        
+        // Phong lighting for given point
+        colorContribution := p.DiffuseColor.Scale(diffuse)
+        colorContribution = colorContribution.Scale(specular)
+        
+        // Add the color contribution from this sample to the overall color
+        color = color.Add(colorContribution)
+    }
+    
+    // Average the colors
+    return color.Scale( 1.0 / float32(Settings.MaxLightRays))
+}
+
 // Scatter for lambertian materials
 func (l Lambertian) Scatter(r Ray, i IntersectionRecord) Ray {
     return calculateDiffuseRay(i)
@@ -168,65 +202,9 @@ func (l Lambertian) GetEmission() Vector3 {
     return NewVector3(0.0, 0.0, 0.0)
 }
 
+// IsEmissive returns if the object is emissive or not
 func (l Lambertian) IsEmissive() bool {
     return false
-}
-
-// Scatter for metal materials
-func (m Metal) Scatter(r Ray, i IntersectionRecord) Ray {
-    return calculateReflectionRay(r, i, m.Fuzziness)
-}
-
-// GetAttenuation gets the metal attenuation
-func (m Metal) GetAttenuation() Vector3 {
-    return m.Attenuation
-}
-
-// GetEmission returns the emissive component for lights, metal has no emissive component
-func (m Metal) GetEmission() Vector3 {
-    return NewVector3(0.0, 0.0, 0.0)
-}
-
-func (m Metal) IsEmissive() bool {
-    return false
-}
-
-// Scatter refracts rays for dielectric materials
-func (d Dielectric) Scatter(r Ray, i IntersectionRecord) Ray {
-    return calculateRefractedRay(r, i, d.RefractiveIndex)
-}
-
-// GetAttenuation gets the dielectric attenuation
-func (d Dielectric) GetAttenuation() Vector3 {
-    return d.Attenuation
-}
-
-// GetEmission returns the emissive component for lights, dielectric has no emissive component
-func (d Dielectric) GetEmission() Vector3 {
-    return NewVector3(0.0, 0.0, 0.0)
-}
-
-func (d Dielectric) IsEmissive() bool {
-    return false
-}
-
-// Scatter does nothing for an emissive material
-func (e Emissive) Scatter(r Ray, i IntersectionRecord) Ray {
-    return Ray{}
-}
-
-// GetAttenuation reutrns the emissive color
-func (e Emissive) GetAttenuation() Vector3 {
-    return NewVector3(0.0, 0.0, 0.0)
-}
-
-// GetEmission reutrns the emissive
-func (e Emissive) GetEmission() Vector3 {
-    return e.Emission
-}
-
-func (e Emissive) IsEmissive() bool {
-    return true
 }
 
 func deserializeMaterial(object map[string]interface{}) (Material, bool) {
@@ -247,12 +225,18 @@ func deserializeMaterial(object map[string]interface{}) (Material, bool) {
         if err := json.Unmarshal(b, &dielectric); err == nil {
             return dielectric, true
         }
-    }
-    
-    var lambert Lambertian
-    if err := json.Unmarshal(b, &lambert); err == nil {
-        return lambert, true
-    }
+    // If Emission is in the object then it must be a dielectric
+    } else if nil != object["Emission"] {
+        var emissive Emissive
+        if err := json.Unmarshal(b, &emissive); err == nil {
+            return emissive, true
+        }
+    } else if nil != object["DiffuseColor"] {
+        var phong Phong
+        if err := json.Unmarshal(b, &phong); err == nil {
+            return phong, true
+        }
+    }   
     
     return nil, false
 }

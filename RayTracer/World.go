@@ -13,6 +13,7 @@ import
 // World contains information about the world
 type World struct {
     Scene CollisionList
+    Lights LightList
 }
 
 // Config contains data on how the raytracer will behave
@@ -32,6 +33,9 @@ type Config struct {
     // MaxAntialiasRays is the maximum number of rays that will be shot per pixel for anit aliasing
     MaxAntialiasRays uint32
     
+    // MaxLightRays is the maximum number of rays that will be shot per light for smooth shadowing
+    MaxLightRays uint32
+    
     // WidthInPixels is the horizontal resolution of the resulting image
     WidthInPixels int
     
@@ -48,6 +52,11 @@ var Scene World
 // AddObject adds a collidableobject to the scene
 func (w *World) AddObject(name string, obj CollidableObject) {
     w.Scene.addObject(name, obj)
+}
+
+// AddLight adds a light to the world
+func (w *World) AddLight(name string, light Light) {
+    w.Lights.addObject(name, light)
 }
 
 // TestCollision tests all the objects in the scene for collisions
