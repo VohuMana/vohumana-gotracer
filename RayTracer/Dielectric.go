@@ -54,9 +54,8 @@ func (d Dielectric) GetColor(r Ray, i IntersectionRecord, w World, bounceDepth u
     c.G = uint8(green)
     c.B = uint8(blue)
     c.A = uint8(255)
-    
-    phong := NewPhong(c, d.Reflectivity, d.Shininess)
-    reflectedRay := calculateReflectionRay(r, i, 0.0)
-    
-    return calculatePhongLighting(phong, i, reflectedRay, w, bounceDepth)
+    return c
+    // phong := NewPhong(c, d.Reflectivity, d.Shininess)
+    // reflectedRay := calculateReflectionRay(r, i, 0.0)
+    // return calculatePhongLighting(phong, i, reflectedRay, w, bounceDepth)
 }

@@ -46,9 +46,9 @@ func main() {
     light := raytracer.NewPointLight(
         raytracer.Vector3{}, 
         raytracer.Vector3 {
-        Y: 0,
-        Z: 0 }, 
-        0.3)
+        X: -5,
+        Z: -5 }, 
+        1.0)
         
     raytracer.Scene.AddLight("light", light)
     
@@ -58,9 +58,9 @@ func main() {
         0.0,
         4)
         
-    bluePhong := raytracer.NewPhong(
+    greenPhong := raytracer.NewPhong(
         color.RGBA {
-            B: 255 },
+            G: 255 },
         0.6,
         4 )
         
@@ -69,7 +69,7 @@ func main() {
             R: 255,
             G: 255,
             B: 255 },
-        0.98,
+        0.9,
         4,
         0.0)
         
@@ -89,7 +89,7 @@ func main() {
             Y: 3,
             Z: -5 },
         1.5,
-        redPhong)
+        diamond)
             
     bottomSphere := raytracer.NewSphere(
         raytracer.Vector3 {
@@ -97,7 +97,7 @@ func main() {
             Y: -3,
             Z: -5 },
         1.5,
-        bluePhong)
+        greenPhong)
             
     leftSphere := raytracer.NewSphere(
         raytracer.Vector3 {
@@ -119,16 +119,15 @@ func main() {
         raytracer.Vector3 {
             X: 0,
             Y: 0,
-            Z: -4},
-        0.75,
-        diamond)
+            Z: -5},
+        0.25,
+        redPhong)
         
     raytracer.Scene.AddObject("topSphere", topSphere)
     raytracer.Scene.AddObject("bottomSphere", bottomSphere)
     raytracer.Scene.AddObject("leftSphere", leftSphere)
     raytracer.Scene.AddObject("rightSphere", rightSphere)
     raytracer.Scene.AddObject("middleSphere", middleSphere)
-    raytracer.Settings.MaxLightRays = 1
     
     xSize := raytracer.Settings.WidthInPixels
     ySize := raytracer.Settings.HeightInPixels
