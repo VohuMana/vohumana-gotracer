@@ -44,9 +44,13 @@ func main() {
     raytracer.ImportCamera(cameraFilename)
     
     light := raytracer.NewPointLight(
-        raytracer.Vector3{}, 
+        raytracer.Vector3{
+            X: 1.0,
+            Y: 1.0,
+            Z: 1.0 }, 
         raytracer.Vector3 {
-        X: -5,
+        X: -10,
+        Y: 0,
         Z: -5 }, 
         1.0)
         
@@ -61,7 +65,7 @@ func main() {
     greenPhong := raytracer.NewPhong(
         color.RGBA {
             G: 255 },
-        0.6,
+        0.1,
         4 )
         
     metal := raytracer.NewMetal(
@@ -97,7 +101,7 @@ func main() {
             Y: -3,
             Z: -5 },
         1.5,
-        greenPhong)
+        redPhong)
             
     leftSphere := raytracer.NewSphere(
         raytracer.Vector3 {
@@ -105,7 +109,7 @@ func main() {
             Y: 0,
             Z: -5},
         1.5,
-        metal)
+        greenPhong)
             
     rightSphere := raytracer.NewSphere(
         raytracer.Vector3 {
@@ -113,7 +117,7 @@ func main() {
             Y: 0,
             Z: -5 },
         1.5,
-        fuzzyMetal)
+        metal)
             
     middleSphere := raytracer.NewSphere(
         raytracer.Vector3 {
@@ -121,7 +125,7 @@ func main() {
             Y: 0,
             Z: -5},
         0.25,
-        redPhong)
+        fuzzyMetal)
         
     raytracer.Scene.AddObject("topSphere", topSphere)
     raytracer.Scene.AddObject("bottomSphere", bottomSphere)

@@ -150,9 +150,14 @@ func computeColorContributionFromLight(light Light, i *IntersectionRecord, w *Wo
     var color Vector3
     
     for samples := uint32(0); samples < Settings.MaxLightRays; samples++ {
-        lightVector := light.GetPosition().Subtract(i.Point).UnitVector()
+        lightVector := light.GetPosition().Subtract(i.Point)
         distance := float32(lightVector.Length())
-        //lightVector = lightVector.Add(randomVectorInUnitSphere().Scale(distance)).UnitVector()
+        
+        if samples == 0 {
+            lightVector = lightVector.UnitVector()    
+        } else {
+            lightVector = lightVector.Add(randomVectorInUnitSphere().Scale(distance)).UnitVector()    
+        }
         
         lightRay := Ray {
             Origin: i.Point,
@@ -180,6 +185,7 @@ func computeColorContributionFromLight(light Light, i *IntersectionRecord, w *Wo
         // Phong lighting for given point
         colorContribution := p.DiffuseColor.Scale(diffuse)
         colorContribution = colorContribution.Add(colorContribution.Scale(specular))
+        colorContribution = colorContribution.Multiply(light.GetColor())
         
         // Add the color contribution from this sample to the overall color
         color = color.Add(colorContribution)
