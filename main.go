@@ -37,7 +37,7 @@ func main() {
 	// 	flag.PrintDefaults()
 	// 	return
 	// }
-	configFilename = "jsonfiles\\config4kPretty.json"
+	configFilename = "jsonfiles\\config.json"
 	cameraFilename = "SceneGenerator\\camera.json"
 	raytracer.ImportConfig(configFilename)
 	// raytracer.ImportScene(sceneFilename)
@@ -49,24 +49,36 @@ func main() {
 			Y: 1.0,
 			Z: 1.0},
 		raytracer.Vector3{
-			X: -10,
-			Y: 0,
-			Z: -4},
+			X: 0,
+			Y: -100,
+			Z: 0},
 		1.0)
 
+	light2 := raytracer.NewPointLight(
+		raytracer.Vector3{
+			X: 1.0,
+			Y: 1.0,
+			Z: 1.0},
+		raytracer.Vector3{
+			X: 0,
+			Y: 20,
+			Z: 10},
+		0.5)
+
 	raytracer.Scene.AddLight("light", light)
+	raytracer.Scene.AddLight("light2", light2)
 
 	redPhong := raytracer.NewPhong(
 		color.RGBA{
 			R: 255},
 		0.0,
-		4)
+		150)
 
 	greenPhong := raytracer.NewPhong(
 		color.RGBA{
 			G: 255},
 		0.1,
-		4)
+		35)
 
 	metal := raytracer.NewMetal(
 		color.RGBA{
@@ -74,8 +86,8 @@ func main() {
 			G: 255,
 			B: 255},
 		0.9,
-		4,
-		0.0)
+		300,
+		0.05)
 
 	fuzzyMetal := raytracer.NewMetal(
 		color.RGBA{
@@ -83,10 +95,10 @@ func main() {
 			B: 255},
 		0.98,
 		4,
-		0.7)
+		0.4)
 
-	// diamond := raytracer.NewDielectric(0.05, 4, 2.4)
-	lambertian := raytracer.NewLambertian(color.RGBA{B: 255})
+	diamond := raytracer.NewDielectric(0.05, 4, 2.4)
+	//lambertian := raytracer.NewLambertian(color.RGBA{B: 255})
 
 	topSphere := raytracer.NewSphere(
 		raytracer.Vector3{
@@ -94,7 +106,7 @@ func main() {
 			Y: 3,
 			Z: -5},
 		1.5,
-		lambertian)
+		diamond)
 
 	bottomSphere := raytracer.NewSphere(
 		raytracer.Vector3{
