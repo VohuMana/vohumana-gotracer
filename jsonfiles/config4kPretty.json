@@ -1,1 +1,1 @@
-{"SkyColorTop":{"X":0.15686275,"Y":0.4117647,"Z":0.81960785},"SkyColorBottom":{"X":1,"Y":0.9372549,"Z":0.5411765},"MaxBounces":5,"MaxRaysPerBounce":5,"MaxAntialiasRays":5,"MaxLightRays":3,"WidthInPixels":3840,"HeightInPixels":2160}
+{"SkyColorTop":{"X":0.15686275,"Y":0.4117647,"Z":0.81960785},"SkyColorBottom":{"X":1,"Y":0.9372549,"Z":0.5411765},"MaxBounces":5,"MaxRaysPerBounce":5,"MaxAntialiasRays":5,"MaxLightRays":7,"WidthInPixels":3840,"HeightInPixels":2160}
