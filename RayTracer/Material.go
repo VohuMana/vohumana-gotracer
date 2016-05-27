@@ -179,7 +179,7 @@ func computeColorContributionFromLight(light Light, i *IntersectionRecord, w *Wo
 		colorContribution = colorContribution.Multiply(light.GetColor())
 
 		// Add the color contribution from this sample to the overall color
-		color = color.Add(colorContribution)
+		color = color.Add(colorContribution).Multiply(light.GetColor())
 	}
 
 	// Average the colors
@@ -209,6 +209,11 @@ func deserializeMaterial(object map[string]interface{}) (Material, bool) {
 		var emissive Emissive
 		if err := json.Unmarshal(b, &emissive); err == nil {
 			return emissive, true
+		}
+	} else if nil != object["BaseProperties"] {
+		var lambert Lambertian
+		if err := json.Unmarshal(b, &lambert); err == nil {
+			return lambert, true
 		}
 	} else if nil != object["DiffuseColor"] {
 		var phong Phong
