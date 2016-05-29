@@ -179,7 +179,7 @@ func computeColorContributionFromLight(light Light, i *IntersectionRecord, w *Wo
 		colorContribution = colorContribution.Multiply(light.GetColor())
 
 		// Add the color contribution from this sample to the overall color
-		color = color.Add(colorContribution).Multiply(light.GetColor())
+		color = color.Add(colorContribution)
 	}
 
 	// Average the colors
