@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image/color"
 	"log"
@@ -8,11 +9,8 @@ import (
 	"math/rand"
 	"strconv"
 	"time"
-
 	"github.com/vohumana/vohumana-gotracer/RayTracer"
 )
-
-var communicationChannel chan bool
 
 func checkError(err error) {
 	if err != nil {
@@ -20,11 +18,69 @@ func checkError(err error) {
 	}
 }
 
-func main() {
-	seedVal := time.Now().UTC().UnixNano()
-	rand.Seed(seedVal)
-	fmt.Printf("Generating scene with seed val: %v", seedVal)
+func spawnLightsInXZPlane(Y float32, numLights uint) {
+	radius := 50.0
+	phi := float64(0.0)
+	theta := float64(0.0)
+	incrementValue := 360.0 / float64(numLights)
+	incrementValue = float64(raytracer.ConvertDegreesToRadians(float32(incrementValue)))
+	for i := uint(0); i < numLights; i++ {
+		color := getRandomColor()
 
+		X := float32(radius * math.Cos(theta))
+		Z := float32(radius * math.Sin(phi))
+		
+		light := raytracer.NewPointLight(color, raytracer.NewVector3(X, Y, Z), rand.Float32() * 2.0)
+		raytracer.Scene.AddLight(strconv.Itoa(int(i+1)), light)
+
+		phi += incrementValue
+		theta += incrementValue
+	}
+}
+
+func spawnSpheresInCube(height, width, depth float32, numSpheres uint) {
+	for i := uint(0); i < numSpheres; i++ {
+		var pos raytracer.Vector3
+		pos.X = (rand.Float32() * width) - (width / 2.0)
+		pos.Y = (rand.Float32() * height) - (height / 2.0)
+		pos.Z = (rand.Float32() * depth) - (depth / 2.0)
+
+		radius := 1.0 + (rand.Float32() * 4.0)
+
+		sphere := raytracer.Sphere{
+			Origin: pos,
+			Radius: radius}
+		
+		sphere.Properties = getRandomMaterial()
+		
+		raytracer.Scene.AddObject(strconv.Itoa(int(i+1)), sphere)
+	}
+}
+
+func getRandomMaterial() raytracer.Material {
+	var material raytracer.Material
+	color := getRandomColor()
+	switch rand.Int() % 3 {
+		case 0:
+			material = raytracer.NewLambertian(color)
+		case 1:
+			material = raytracer.NewMetal(color, rand.Float32(), 1.0 + float32(int32(rand.Float32() * 300)), rand.Float32())
+		case 2:
+			material = raytracer.NewPhong(color, rand.Float32(), 1.0 + float32(int32(rand.Float32() * 70)))
+	}
+	
+	return material
+}
+
+func getRandomColor() color.RGBA {
+	return color.RGBA{
+		R: uint8(rand.Intn(255)),
+		G: uint8(rand.Intn(255)),
+		B: uint8(rand.Intn(255)),
+		A: 255}
+}
+
+func spawnSpheresInRing() {
 	// shellIncrement := 10.0
 	// sphereRadius := 20.0
 	// numSpheresPerRow := 35.0
@@ -83,84 +139,26 @@ func main() {
 
 	// 	sphereRadius += shellIncrement
 	// }
+}
 
-	numSpheres := 150
-	for i := 0; i < numSpheres; i++ {
-		var pos raytracer.Vector3
-		pos.X = (rand.Float32() * 100.0) - 50.0
-		pos.Y = (rand.Float32() * 100.0) - 50.0
-		pos.Z = (rand.Float32() * 100.0) - 50.0
-
-		radius := 1.0 + (rand.Float32() * 4.0)
-
-		sphere := raytracer.Sphere{
-			Origin: pos,
-			Radius: radius}
-		color := color.RGBA{
-			R: uint8(rand.Intn(255)),
-			G: uint8(rand.Intn(255)),
-			B: uint8(rand.Intn(255)),
-			A: 255}
-
-		switch rand.Int() % 3 {
-		case 0:
-			sphere.Properties = raytracer.NewLambertian(color)
-		case 1:
-			sphere.Properties = raytracer.NewMetal(color, rand.Float32(), 1.0+float32(int32(rand.Float32()*300)), rand.Float32())
-		case 2:
-			sphere.Properties = raytracer.NewPhong(color, rand.Float32(), 1.0+float32(int32(rand.Float32()*70)))
-			// sphere.Properties = raytracer.Dielectric{
-			// 	Attenuation: raytracer.Vector3{
-			// 		X: 1.0,
-			// 		Y: 1.0,
-			// 		Z: 1.0},
-			// 	RefractiveIndex: }
-		}
-
-		raytracer.Scene.AddObject(strconv.Itoa(i+1), sphere)
-	}
-
-	numLights := 5
-	radius := 50.0
-	phi := float64(0.0)
-	theta := float64(0.0)
-	incrementValue := 360.0 / float64(numLights)
-	incrementValue = float64(raytracer.ConvertDegreesToRadians(float32(incrementValue)))
-	for i := 0; i < numLights; i++ {
-		color := color.RGBA{
-			R: uint8(rand.Intn(255)),
-			G: uint8(rand.Intn(255)),
-			B: uint8(rand.Intn(255)),
-			A: 255}
-		// X := (rand.Float32() * 300.0) - 150.0
-		// Y := (rand.Float32() * 300.0) - 150.0
-		// Z := (rand.Float32() * 300.0) - 150.0
-		X := float32(radius * math.Cos(theta))
-		Z := float32(radius * math.Sin(phi))
-		light := raytracer.NewPointLight(color, raytracer.NewVector3(X, 500.0, Z), rand.Float32()*2.0)
-		raytracer.Scene.AddLight(strconv.Itoa(i+1), light)
-
-		phi += incrementValue
-		theta += incrementValue
-	}
-
-	raytracer.ExportScene("GeneratedScene.json", "GeneratedLights.json")
-
-	// _ = raytracer.CreateCameraFromPos(
-	//     raytracer.Vector3 {
-	//         X: 0.0,
-	//         Y: 0.0,
-	//         Z: -1.0 },
-	//     raytracer.Vector3 {
-	//         X: 0.0,
-	//         Y: 0.0,
-	//         Z: 0.0 },
-	//     raytracer.Vector3 {
-	//         X: 0.0,
-	//         Y: 1.0,
-	//         Z: 0.0 },
-	//     120,
-	//     4.0 / 3.0)
-	// raytracer.ExportCamera("camera.json")
-
+func main() {
+	var lightFilename string
+	var sceneFilename string
+	var numberSpheres uint 
+	var numberLights uint
+	
+	flag.StringVar(&lightFilename, "light", "GeneratedLights.json", "Filename to output generated lights JSON to")
+	flag.StringVar(&sceneFilename, "scene", "GeneratedScene.json", "Filename to output the generated scene JSON to")
+	flag.UintVar(&numberSpheres, "numSpheres", 50, "The number of spheres to spawn")
+	flag.UintVar(&numberLights, "numLights", 5, "Number of lights to spawn")
+	flag.Parse()	
+	
+	seedVal := time.Now().UTC().UnixNano()
+	rand.Seed(seedVal)
+	fmt.Printf("Generating with seed val: %v", seedVal)
+	
+	spawnSpheresInCube(100.0, 100.0, 100.0, numberSpheres)
+	spawnLightsInXZPlane(200.0, numberLights)
+	
+	raytracer.ExportScene(sceneFilename, lightFilename)
 }
