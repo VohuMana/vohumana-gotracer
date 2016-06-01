@@ -141,24 +141,75 @@ func spawnSpheresInRing() {
 	// }
 }
 
+func generatePhongShadingTest(numSpheresHigh, numSpheresWide uint) {
+	reflectivity := float32(0.0)
+	reflectivityInc := 1.0 / float32(numSpheresHigh)
+	shininess := 1
+	shininessInc := int(300.0 / float32(numSpheresWide))
+	radius := float32(3.0)
+	color := color.RGBA {
+		R: 255,
+		G: 255,
+		B: 255,
+		A: 255}
+	sphereCount := 1
+	for i := uint(0); i < numSpheresHigh; i++ {
+		for j := uint(0); j < numSpheresWide; j++ {
+			pos := raytracer.NewVector3(
+				float32((radius * 2.5) * float32(j)),
+				float32((radius * 2.5) * float32(i)),
+				float32(-5.0))
+			
+			phong := raytracer.NewPhong(color, reflectivity, float32(shininess))
+			
+			sphere := raytracer.NewSphere(
+				pos,
+				radius,
+				phong)
+				
+			raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+			sphereCount++
+			shininess += shininessInc
+		}
+		
+		shininess = 1
+		reflectivity += reflectivityInc 
+	}
+	color.R = 0
+	color.G = 0
+	light := raytracer.NewPointLight(color, raytracer.NewVector3(52.5, 30, 100), 1.5)
+	color.B = 0
+	color.G = 255
+	light2 := raytracer.NewPointLight(color, raytracer.NewVector3(70, 20, 100), 1.0)
+	raytracer.Scene.AddLight("light", light)
+	raytracer.Scene.AddLight("light2", light2)
+}
+
 func main() {
 	var lightFilename string
 	var sceneFilename string
 	var numberSpheres uint 
 	var numberLights uint
+	var generatePhongTest bool
 	
 	flag.StringVar(&lightFilename, "light", "GeneratedLights.json", "Filename to output generated lights JSON to")
 	flag.StringVar(&sceneFilename, "scene", "GeneratedScene.json", "Filename to output the generated scene JSON to")
 	flag.UintVar(&numberSpheres, "numSpheres", 50, "The number of spheres to spawn")
 	flag.UintVar(&numberLights, "numLights", 5, "Number of lights to spawn")
+	flag.BoolVar(&generatePhongTest, "phongtest", false, "Pass true to this to generate a phong material test grid")
 	flag.Parse()	
 	
 	seedVal := time.Now().UTC().UnixNano()
 	rand.Seed(seedVal)
-	fmt.Printf("Generating with seed val: %v", seedVal)
+	fmt.Printf("Generating with seed val: %v\n", seedVal)
 	
-	spawnSpheresInCube(100.0, 100.0, 100.0, numberSpheres)
-	spawnLightsInXZPlane(200.0, numberLights)
+	if (generatePhongTest) {
+		fmt.Println("Generating phong test grid")
+		generatePhongShadingTest(10, 15)
+	} else {
+		spawnSpheresInCube(100.0, 100.0, 100.0, numberSpheres)
+		spawnLightsInXZPlane(200.0, numberLights)	
+	}
 	
 	raytracer.ExportScene(sceneFilename, lightFilename)
 }

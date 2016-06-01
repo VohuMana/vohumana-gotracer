@@ -171,12 +171,16 @@ func computeColorContributionFromLight(light Light, i *IntersectionRecord, w *Wo
 		cameraVector := GlobalCamera.Origin.Subtract(i.Point).UnitVector()
 
 		// Calculate the specular coefficient
-		specular := float32(math.Max(0.0, math.Pow(float64(reflectRay.Direction.Dot(cameraVector)), float64(p.Shininess)))) * light.GetPower()
+		specular := float32(math.Max(0.0, math.Pow(float64(reflectRay.Direction.Dot(cameraVector)), float64(p.Shininess))))
+		
+		// Calculate light power
+		lightPower := (1.0 / (distance * distance)) * light.GetPower()
 
 		// Phong lighting for given point
 		colorContribution := p.DiffuseColor.Scale(diffuse)
 		colorContribution = colorContribution.Add(colorContribution.Scale(specular))
 		colorContribution = colorContribution.Multiply(light.GetColor())
+		colorContribution = colorContribution.Scale(lightPower)
 
 		// Add the color contribution from this sample to the overall color
 		color = color.Add(colorContribution)
