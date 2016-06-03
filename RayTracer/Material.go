@@ -169,9 +169,11 @@ func computeColorContributionFromLight(light Light, i *IntersectionRecord, w *Wo
 
 		// Calculate the vector to the camera
 		cameraVector := GlobalCamera.Origin.Subtract(i.Point).UnitVector()
+		
+		lightReflectVector := i.Normal.Scale(lightRay.Direction.Dot(i.Normal) * float32(2.0)).Subtract(lightRay.Direction)
 
 		// Calculate the specular coefficient
-		specular := float32(math.Max(0.0, math.Pow(float64(reflectRay.Direction.Dot(cameraVector)), float64(p.Shininess))))
+		specular := float32(math.Max(0.0, math.Pow(float64(lightReflectVector.Dot(cameraVector)), float64(p.Shininess))))
 		
 		// Calculate light power
 		lightPower := (1.0 / (distance * distance)) * light.GetPower()
