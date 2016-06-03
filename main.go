@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "flag"
 	"flag"
 	"fmt"
 	"image"
@@ -10,8 +9,8 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime/pprof"
 	"time"
-
 	"github.com/vohumana/vohumana-gotracer/raytracer"
 )
 
@@ -28,17 +27,29 @@ func main() {
 	var sceneFilename string
 	var cameraFilename string
 	var lightsFilename string
+	var outFilename string
+	var runPprof bool
 
 	// Get command line parameters
 	flag.StringVar(&configFilename, "config", "", "JSON filename describing how the ray tracer should render")
 	flag.StringVar(&sceneFilename, "scene", "", "JSON filename containing the scene to render")
 	flag.StringVar(&lightsFilename, "light", "", "JSON filename containing the lights to render in the scene")
 	flag.StringVar(&cameraFilename, "camera", "", "JSON filename containing the camera position and stats")
+	flag.StringVar(&outFilename, "outfile", "rayframe.png", "Filename to output to, output will be a png")
+	flag.BoolVar(&runPprof, "profile", false, "Specifiy this parameter if you want to run the profiler.  Pprof output will be saved to rayProfile.prof")
 	flag.Parse()
 
 	if configFilename == "" || sceneFilename == "" || cameraFilename == "" || lightsFilename == "" {
 		flag.PrintDefaults()
 		return
+	}
+	
+	if (runPprof) {
+		profileFile, err := os.Create("rayProfile")
+		checkError(err)
+		
+		pprof.StartCPUProfile(profileFile)
+		defer pprof.StopCPUProfile()
 	}
 
 	raytracer.ImportConfig(configFilename)
@@ -79,7 +90,7 @@ func main() {
 	elapsedTime := time.Since(startTime)
 	fmt.Printf("Render duration was: %v s", elapsedTime.Seconds())
 
-	outFile, err := os.Create("rayframe.png")
+	outFile, err := os.Create(outFilename)
 	checkError(err)
 	defer outFile.Close()
 

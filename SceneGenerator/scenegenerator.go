@@ -177,10 +177,10 @@ func generatePhongShadingTest(numSpheresHigh, numSpheresWide uint) {
 	}
 	color.R = 0
 	color.G = 0
-	light := raytracer.NewPointLight(color, raytracer.NewVector3(52.5, 30, 100), 1.5)
+	light := raytracer.NewPointLight(color, raytracer.NewVector3(52.5, 30, 100), 80)
 	color.B = 0
 	color.G = 255
-	light2 := raytracer.NewPointLight(color, raytracer.NewVector3(70, 20, 100), 1.0)
+	light2 := raytracer.NewPointLight(color, raytracer.NewVector3(70, 20, 100), 80)
 	raytracer.Scene.AddLight("light", light)
 	raytracer.Scene.AddLight("light2", light2)
 }
