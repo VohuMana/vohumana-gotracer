@@ -30,7 +30,7 @@ func spawnLightsInXZPlane(Y float32, numLights uint) {
 		X := float32(radius * math.Cos(theta))
 		Z := float32(radius * math.Sin(phi))
 		
-		light := raytracer.NewPointLight(color, raytracer.NewVector3(X, Y, Z), rand.Float32() * 2.0)
+		light := raytracer.NewPointLight(color, raytracer.NewVector3(X, Y, Z), rand.Float32() * 100.0)
 		raytracer.Scene.AddLight(strconv.Itoa(int(i+1)), light)
 
 		phi += incrementValue
@@ -183,6 +183,105 @@ func generatePhongShadingTest(numSpheresHigh, numSpheresWide uint) {
 	light2 := raytracer.NewPointLight(color, raytracer.NewVector3(70, 20, 100), 80)
 	raytracer.Scene.AddLight("light", light)
 	raytracer.Scene.AddLight("light2", light2)
+	
+	middleSphere := (int(numSpheresHigh / 2) * int(numSpheresWide)) + int(numSpheresWide / 2)
+	fmt.Printf("Look up sphere %v", middleSphere)
+}
+
+func generateHeart() {
+	color := color.RGBA {
+		R: 255,
+		A: 255 }
+	sphereCount := 1
+	material := raytracer.NewPhong(color, 0.3, 25)
+	radius := float32(1.0)
+	X := float32(0)
+	Y := float32(0)
+	Z := float32(-5.0)
+	
+	sphere := raytracer.NewSphere(
+			raytracer.NewVector3(X, Y, Z),
+			radius,
+			material)
+			
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
+	
+	for row := 0; row < 5; row++ {
+		sphere1 := raytracer.NewSphere(
+			raytracer.NewVector3(X, Y, Z),
+			radius,
+			material)
+		sphere2 := raytracer.NewSphere(
+			raytracer.NewVector3(-X, Y, Z),
+			radius,
+			material)
+		
+		X += radius * 2.0
+		Y += radius * 2.0
+		
+		raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere1)
+		sphereCount++
+		
+		raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere2)
+		sphereCount++
+	}
+	
+	sphere = raytracer.NewSphere(
+			raytracer.NewVector3(0, 8, Z),
+			radius,
+			material)
+	
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
+	
+	sphere = raytracer.NewSphere(
+			raytracer.NewVector3(-6, 10, Z),
+			radius,
+			material)
+	
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
+	
+	sphere = raytracer.NewSphere(
+			raytracer.NewVector3(6, 10, Z),
+			radius,
+			material)
+	
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
+	
+	sphere = raytracer.NewSphere(
+			raytracer.NewVector3(4, 12, Z),
+			radius,
+			material)
+	
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
+	
+	sphere = raytracer.NewSphere(
+			raytracer.NewVector3(-4, 12, Z),
+			radius,
+			material)
+	
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
+	
+	sphere = raytracer.NewSphere(
+			raytracer.NewVector3(-2, 10, Z),
+			radius,
+			material)
+	
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
+	
+	sphere = raytracer.NewSphere(
+			raytracer.NewVector3(2, 10, Z),
+			radius,
+			material)
+	
+	raytracer.Scene.AddObject(strconv.Itoa(int(sphereCount)), sphere)
+	sphereCount++
 }
 
 func main() {
@@ -191,12 +290,14 @@ func main() {
 	var numberSpheres uint 
 	var numberLights uint
 	var generatePhongTest bool
+	var heartTest bool
 	
 	flag.StringVar(&lightFilename, "light", "GeneratedLights.json", "Filename to output generated lights JSON to")
 	flag.StringVar(&sceneFilename, "scene", "GeneratedScene.json", "Filename to output the generated scene JSON to")
 	flag.UintVar(&numberSpheres, "numSpheres", 50, "The number of spheres to spawn")
 	flag.UintVar(&numberLights, "numLights", 5, "Number of lights to spawn")
 	flag.BoolVar(&generatePhongTest, "phongtest", false, "Pass true to this to generate a phong material test grid")
+	flag.BoolVar(&heartTest, "heart", false, "Pass true to this to generate a heart")
 	flag.Parse()	
 	
 	seedVal := time.Now().UTC().UnixNano()
@@ -205,7 +306,10 @@ func main() {
 	
 	if (generatePhongTest) {
 		fmt.Println("Generating phong test grid")
-		generatePhongShadingTest(10, 15)
+		generatePhongShadingTest(20, 30)
+	} else if (heartTest) {
+		generateHeart()
+		spawnLightsInXZPlane(40.0, 3)	
 	} else {
 		spawnSpheresInCube(100.0, 100.0, 100.0, numberSpheres)
 		spawnLightsInXZPlane(200.0, numberLights)	

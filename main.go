@@ -56,6 +56,15 @@ func main() {
 	raytracer.ImportScene(sceneFilename, lightsFilename)
 	raytracer.ImportCamera(cameraFilename)
 
+	plane := raytracer.NewInfinitePlane(
+		raytracer.NewVector3(0, -5, 0),
+		raytracer.NewVector3(0, 1, 0),
+		raytracer.NewPhong(
+			color.RGBA {B: 255, A: 255},
+			0.5,
+			20.0))
+	raytracer.Scene.AddObject("plane", plane)
+
 	xSize := raytracer.Settings.WidthInPixels
 	ySize := raytracer.Settings.HeightInPixels
 	bounds := image.Rectangle{image.Point{0, 0}, image.Point{xSize, ySize}}
