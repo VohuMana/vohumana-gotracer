@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"runtime/pprof"
+	// "strconv"
 	"time"
 	"github.com/vohumana/vohumana-gotracer/raytracer"
 )
@@ -56,14 +57,32 @@ func main() {
 	raytracer.ImportScene(sceneFilename, lightsFilename)
 	raytracer.ImportCamera(cameraFilename)
 
-	plane := raytracer.NewInfinitePlane(
-		raytracer.NewVector3(0, -5, 0),
-		raytracer.NewVector3(0, 1, 0),
-		raytracer.NewPhong(
-			color.RGBA {B: 255, A: 255},
-			0.5,
-			20.0))
-	raytracer.Scene.AddObject("plane", plane)
+	// plane := raytracer.NewInfinitePlane(
+	// 	raytracer.NewVector3(0, -5, 0),
+	// 	raytracer.NewVector3(0, 1, 0),
+	// 	raytracer.NewPhong(
+	// 		color.RGBA {B: 255, A: 255},
+	// 		0.5,
+	// 		20.0))
+	// raytracer.Scene.AddObject("plane", plane)
+	
+	// triangle1 := raytracer.NewTriangle(
+	// 	raytracer.NewVector3(1.0, 1.0, 0.0),
+	// 	raytracer.NewVector3(-1.0, -1.0, 0.0),
+	// 	raytracer.NewVector3(1.0, -1.0, 0.0),
+	// 	raytracer.NewPhong(
+	// 		color.RGBA { R: 255},
+	// 		0.3,
+	// 		30))
+	// raytracer.Scene.AddObject("tri1", triangle1)
+	
+	// tris := raytracer.LoadObjFile("ObjectFiles\\quad.obj")
+	
+	// for i, tri := range tris {
+	// 	tri.Properties = raytracer.NewPhong(color.RGBA{B: 255}, 0.3, 20)
+		
+	// 	raytracer.Scene.AddObject(strconv.Itoa(i + 1), tri)
+	// }
 
 	xSize := raytracer.Settings.WidthInPixels
 	ySize := raytracer.Settings.HeightInPixels
