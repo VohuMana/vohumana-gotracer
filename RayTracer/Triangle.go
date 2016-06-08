@@ -2,6 +2,7 @@ package raytracer
 
 import
 (
+    // "fmt"
     "image/color"
 )
 
@@ -23,33 +24,43 @@ func NewTriangle(pos1, pos2, pos3 Vector3, mat Material) Triangle {
 
 // TestIntersection will test if a ray is colliding with the triangle
 func (tri Triangle) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
-    a := tri.Position2.Subtract(tri.Position1)
-    b := tri.Position3.Subtract(tri.Position1)
+    edge1 := tri.Position2.Subtract(tri.Position1)
+    edge2 := tri.Position3.Subtract(tri.Position1)
+
+    pvec := r.Direction.Cross(edge2)
+    determinant := pvec.Dot(edge1)
     
-    t := r.Origin.Subtract(tri.Position1).Scale(1.0).Dot(tri.Normal) / r.Direction.Dot(tri.Normal)
-    
-    if (t <= tMin || t >= tMax) {
+    if (determinant < 0.0001) {
         return false, IntersectionRecord{}
     }
-    
-    aDotB := a.Dot(b)
-    coeff := float32(1.0) / (float32(a.SquareLength()) * float32(b.SquareLength()) - (aDotB * aDotB))
-    intersectionPoint := r.PointOnRay(t)
-    inter := intersectionPoint.Subtract(tri.Position1)
-    interDotA := inter.Dot(a)
-    interDotB := inter.Dot(b)
-    alpha := coeff * (interDotA * float32(b.SquareLength()) + -aDotB * interDotB)
-    beta := coeff * (interDotA * -aDotB + float32(a.SquareLength()) * interDotB)
-    
-    if (alpha < 0.0 || beta < 0.0 || (alpha + beta) > 1.0) {
+
+    tvec := r.Origin.Subtract(tri.Position1)
+    u := tvec.Dot(pvec)
+
+    if (u < 0.0 || u > determinant) {
         return false, IntersectionRecord{}
     }
-    
-    return true, IntersectionRecord {
+
+    qvec := tvec.Cross(edge1)
+    v := r.Direction.Dot(qvec)
+
+    if (v < 0.0 || (u + v) > determinant) {
+        return false, IntersectionRecord{}
+    }
+
+    inverseDeterminant := 1.0 / determinant
+    t := edge2.Dot(qvec) * inverseDeterminant
+
+    if (t > tMin && t < tMax) {
+        // fmt.Println("Tri hit")
+        return true, IntersectionRecord {
         T: t,
         Normal: tri.Normal,
-        Point: intersectionPoint,
+        Point: r.PointOnRay(t),
         Object: tri }
+    }
+
+    return false, IntersectionRecord{}
 }
 
 // GetColor will get the color at the collision point
