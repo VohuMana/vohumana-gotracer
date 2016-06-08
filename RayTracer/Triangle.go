@@ -2,7 +2,6 @@ package raytracer
 
 import
 (
-    // "fmt"
     "image/color"
 )
 
@@ -52,7 +51,6 @@ func (tri Triangle) TestIntersection(r Ray, tMin, tMax float32) (bool, Intersect
     t := edge2.Dot(qvec) * inverseDeterminant
 
     if (t > tMin && t < tMax) {
-        // fmt.Println("Tri hit")
         return true, IntersectionRecord {
         T: t,
         Normal: tri.Normal,
