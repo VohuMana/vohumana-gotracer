@@ -43,7 +43,15 @@ func (m Matrix3) MultiplyVector3(vec Vector3) Vector3 {
     return NewVector3(
         vec.X * m.Row1.X + vec.Y * m.Row1.Y + vec.Z * m.Row1.Z,
         vec.X * m.Row2.X + vec.Y * m.Row2.Y + vec.Z * m.Row2.Z,
-        vec.X * m.Row3.X + vec.Y * m.Row2.Y + vec.Z * m.Row3.Z)
+        vec.X * m.Row3.X + vec.Y * m.Row3.Y + vec.Z * m.Row3.Z)
+}
+
+// ScaleMatrix will create a scale matrix for triangle meshes
+func ScaleMatrix(x, y, z float32) Matrix3 {
+    return NewMatrix3(
+        NewVector3(x, 0, 0),
+        NewVector3(0, y, 0),
+        NewVector3(0, 0, z))
 }
 
 func rowMultColumn(row Vector3, x, y, z float32) float32 {

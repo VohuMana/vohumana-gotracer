@@ -17,7 +17,7 @@ func LoadObjFile(filename string) []Triangle {
     
     var verticies []Vector3
     var triangles []Triangle
-    // var vertexNormals []Vector3
+    var vertexNormals []Vector3
     
     for scanner.Scan() {
         line := scanner.Text()
@@ -32,6 +32,12 @@ func LoadObjFile(filename string) []Triangle {
             var Z float32
             fmt.Sscanf(line, "%s %f %f %f", &text, &X, &Y, &Z)
             verticies = append(verticies, NewVector3(X,Y,Z))
+        } else if (text == "vn") {
+            var X float32
+            var Y float32
+            var Z float32
+            fmt.Sscanf(line, "%s %f %f %f", &text, &X, &Y, &Z)
+            vertexNormals = append(vertexNormals, NewVector3(X,Y,Z))
         } else if (text == "f") {
             var vertexIndex1 int
             var textureIndex1 int
@@ -45,11 +51,14 @@ func LoadObjFile(filename string) []Triangle {
             var textureIndex3 int
             var normalIndex3 int
             fmt.Sscanf(line, "f %d/%d/%d %d/%d/%d %d/%d/%d", &vertexIndex1, &textureIndex1, &normalIndex1, &vertexIndex2, &textureIndex2, &normalIndex2, &vertexIndex3, &textureIndex3, &normalIndex3)
+
+            normalAverage := vertexNormals[normalIndex1 - 1].Add(vertexNormals[normalIndex2 - 1]).Add(vertexNormals[normalIndex3 - 1]).Scale(1.0 / 3.0)
             
-            triangles = append(triangles, NewTriangle(
+            triangles = append(triangles, NewTriangleWithNormal(
                 verticies[vertexIndex1 - 1],
                 verticies[vertexIndex2 - 1],
                 verticies[vertexIndex3 - 1],
+                normalAverage,
                 Phong{}))
         }
     }

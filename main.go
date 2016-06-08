@@ -56,45 +56,11 @@ func main() {
 	raytracer.ImportScene(sceneFilename, lightsFilename)
 	raytracer.ImportCamera(cameraFilename)
 
-	// plane := raytracer.NewInfinitePlane(
-	// 	raytracer.NewVector3(0, -5, 0),
-	// 	raytracer.NewVector3(0, 1, 0),
-	// 	raytracer.NewPhong(
-	// 		color.RGBA {B: 255, A: 255},
-	// 		0.5,
-	// 		20.0))
-	// raytracer.Scene.AddObject("plane", plane)
-	
-	// triangle1 := raytracer.NewTriangle(
-	// 	raytracer.NewVector3(1.0, 1.0, 0.0),
-	// 	raytracer.NewVector3(-1.0, -1.0, 0.0),
-	// 	raytracer.NewVector3(1.0, -1.0, 0.0),
-	// 	raytracer.NewPhong(
-	// 		color.RGBA { R: 255},
-	// 		0.3,
-	// 		30))
-	// raytracer.Scene.AddObject("tri1", triangle1)
-	
-	// tris := raytracer.LoadObjFile("ObjectFiles\\box.obj")
-	
-	// for i, tri := range tris {
-	// 	tri.Properties = raytracer.NewPhong(color.RGBA{B: 255}, 0.3, 20)
-	// 	fmt.Printf("Triangle: (%v, %v, %v), (%v, %v, %v), (%v, %v, %v) with Normal: (%v, %v, %v)\n", 
-	// 		tri.Position1.X, 
-	// 		tri.Position1.Y,
-	// 		tri.Position1.Z,
-	// 		tri.Position2.X, 
-	// 		tri.Position2.Y,
-	// 		tri.Position2.Z,
-	// 		tri.Position3.X, 
-	// 		tri.Position3.Y,
-	// 		tri.Position3.Z,
-	// 		tri.Normal.X, 
-	// 		tri.Normal.Y,
-	// 		tri.Normal.Z,)
-		
-	// 	raytracer.Scene.AddObject(strconv.Itoa(i + 1), tri)
-	// }
+	scaleMtx := raytracer.ScaleMatrix(5, 5, 5)
+	mesh := raytracer.NewTriangleMesh("ObjectFiles\\box.obj", raytracer.NewPhong(color.RGBA { B: 255, A: 255 }, 0.7, 50))
+
+	mesh = mesh.ApplyMatrix3(scaleMtx)
+	raytracer.Scene.AddObject("box", mesh)
 
 	xSize := raytracer.Settings.WidthInPixels
 	ySize := raytracer.Settings.HeightInPixels

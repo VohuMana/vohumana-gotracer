@@ -13,11 +13,16 @@ type Triangle struct {
 
 // NewTriangle creates a new triangle with given properties
 func NewTriangle(pos1, pos2, pos3 Vector3, mat Material) Triangle {
+    return NewTriangleWithNormal(pos1, pos2, pos3, pos2.Subtract(pos1).Cross(pos3.Subtract(pos1)).UnitVector(), mat)
+}
+
+// NewTriangleWithNormal will create a triangle with a specified normal
+func NewTriangleWithNormal(pos1, pos2, pos3, norm Vector3, mat Material) Triangle {
     return Triangle {
         Position1: pos1,
         Position2: pos2,
         Position3: pos3,
-        Normal: pos2.Subtract(pos1).Cross(pos3.Subtract(pos1)).UnitVector(),
+        Normal: norm,
         Properties: mat }
 }
 
