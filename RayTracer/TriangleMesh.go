@@ -47,6 +47,22 @@ func (mesh TriangleMesh) ApplyMatrix3(mtx Matrix3) TriangleMesh {
     return NewTriangleMeshFromTriangleList(newTris)
 }
 
+// Translate will move an object in 3D space, this should be done after scaling and rotating
+func (mesh TriangleMesh) Translate(translation Vector3) TriangleMesh {
+    var newTris []Triangle
+
+    for _, tri := range mesh.TriangleList {
+        translatedTriangle := NewTriangle(
+            tri.Position1.Add(translation),
+            tri.Position2.Add(translation),
+            tri.Position3.Add(translation),
+            tri.Properties)
+        newTris = append(newTris, translatedTriangle)
+    }
+
+    return NewTriangleMeshFromTriangleList(newTris)
+}
+
 // TestIntersection will test if a ray is colliding with the triangle
 func (mesh TriangleMesh) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
     collisionDetected := false

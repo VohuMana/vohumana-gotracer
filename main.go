@@ -56,12 +56,6 @@ func main() {
 	raytracer.ImportScene(sceneFilename, lightsFilename)
 	raytracer.ImportCamera(cameraFilename)
 
-	scaleMtx := raytracer.ScaleMatrix(5, 5, 5)
-	mesh := raytracer.NewTriangleMesh("ObjectFiles\\box.obj", raytracer.NewPhong(color.RGBA { B: 255, A: 255 }, 0.7, 50))
-
-	mesh = mesh.ApplyMatrix3(scaleMtx)
-	raytracer.Scene.AddObject("box", mesh)
-
 	xSize := raytracer.Settings.WidthInPixels
 	ySize := raytracer.Settings.HeightInPixels
 	bounds := image.Rectangle{image.Point{0, 0}, image.Point{xSize, ySize}}
