@@ -9,6 +9,7 @@ import
 type Triangle struct {
     Position1, Position2, Position3, Normal Vector3
     Properties Material
+    Midpoint Vector3
 }
 
 // NewTriangle creates a new triangle with given properties
@@ -23,6 +24,7 @@ func NewTriangleWithNormal(pos1, pos2, pos3, norm Vector3, mat Material) Triangl
         Position2: pos2,
         Position3: pos3,
         Normal: norm,
+        Midpoint: pos1.Add(pos2.Add(pos3)).Scale(1.0 / 3.0),
         Properties: mat }
 }
 
@@ -70,3 +72,21 @@ func (tri Triangle) TestIntersection(r Ray, tMin, tMax float32) (bool, Intersect
 func (tri Triangle) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA {
     return tri.Properties.GetColor(r, i, Scene, bounces)
 }
+
+// // ApplyMatrix3 will apply a matrix to the triangle
+// func (tri Triangle) ApplyMatrix3(mtx Matrix3) Triangle {    
+//     return NewTriangle(
+//         mtx.MultiplyVector3(tri.Position1),
+//         mtx.MultiplyVector3(tri.Position2),
+//         mtx.MultiplyVector3(tri.Position3),
+//         tri.Properties)
+// }
+
+// // Translate will translate the triangle
+// func (tri Triangle) Translate(translation Vector3) Triangle {
+//     return NewTriangle(
+//         tri.Position1.Add(translation),
+//         tri.Position2.Add(translation),
+//         tri.Position3.Add(translation),
+//         tri.Properties)
+// }

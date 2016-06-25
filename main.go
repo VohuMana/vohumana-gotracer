@@ -14,8 +14,6 @@ import (
 	"github.com/vohumana/vohumana-gotracer/raytracer"
 )
 
-var communicationChannel chan bool
-
 func checkError(err error) {
 	if err != nil {
 		log.Fatal(err)
@@ -23,28 +21,23 @@ func checkError(err error) {
 }
 
 func main() {
-	var configFilename string
-	var sceneFilename string
-	var cameraFilename string
-	var lightsFilename string
-	var outFilename string
-	var runPprof bool
-
 	// Get command line parameters
-	flag.StringVar(&configFilename, "config", "", "JSON filename describing how the ray tracer should render")
-	flag.StringVar(&sceneFilename, "scene", "", "JSON filename containing the scene to render")
-	flag.StringVar(&lightsFilename, "light", "", "JSON filename containing the lights to render in the scene")
-	flag.StringVar(&cameraFilename, "camera", "", "JSON filename containing the camera position and stats")
-	flag.StringVar(&outFilename, "outfile", "rayframe.png", "Filename to output to, output will be a png")
-	flag.BoolVar(&runPprof, "profile", false, "Specifiy this parameter if you want to run the profiler.  Pprof output will be saved to rayProfile.prof")
+	var (
+		configFilename = flag.String("config", "", "JSON filename describing how the ray tracer should render")
+		sceneFilename = flag.String("scene", "", "JSON filename containing the scene to render")
+		lightsFilename = flag.String("light", "", "JSON filename containing the lights to render in the scene")
+		cameraFilename = flag.String("camera", "", "JSON filename containing the camera position and stats")
+		outFilename = flag.String("outfile", "rayframe.png", "Filename to output to, output will be a png")
+		runPprof = flag.Bool("profile", false, "Specifiy this parameter if you want to run the profiler.  Pprof output will be saved to rayProfile.prof")
+	)
 	flag.Parse()
 
-	if configFilename == "" || sceneFilename == "" || cameraFilename == "" || lightsFilename == "" {
+	if *configFilename == "" || *sceneFilename == "" || *cameraFilename == "" || *lightsFilename == "" {
 		flag.PrintDefaults()
 		return
 	}
 	
-	if (runPprof) {
+	if (*runPprof) {
 		profileFile, err := os.Create("rayProfile")
 		checkError(err)
 		
@@ -52,21 +45,21 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	raytracer.ImportConfig(configFilename)
-	raytracer.ImportScene(sceneFilename, lightsFilename)
-	raytracer.ImportCamera(cameraFilename)
+	raytracer.ImportConfig(*configFilename)
+	raytracer.ImportScene(*sceneFilename, *lightsFilename)
+	raytracer.ImportCamera(*cameraFilename)
 
 	xSize := raytracer.Settings.WidthInPixels
 	ySize := raytracer.Settings.HeightInPixels
 	bounds := image.Rectangle{image.Point{0, 0}, image.Point{xSize, ySize}}
 
 	rayTracedFrame := image.NewRGBA(bounds)
-	communicationChannel = make(chan bool)
+	communicationChannel := make(chan bool)
 
 	startTime := time.Now()
 	fmt.Printf("Beginning ray trace at resolution %v x %v\n", xSize, ySize)
 	for y := 0; y < ySize; y++ {
-		go RayTraceScanLine(rayTracedFrame, y, xSize, ySize)
+		go RayTraceScanLine(rayTracedFrame, y, xSize, ySize, &communicationChannel)
 	}
 
 	fmt.Println("All routines are running, now waiting")
@@ -90,7 +83,7 @@ func main() {
 	elapsedTime := time.Since(startTime)
 	fmt.Printf("Render duration was: %v s", elapsedTime.Seconds())
 
-	outFile, err := os.Create(outFilename)
+	outFile, err := os.Create(*outFilename)
 	checkError(err)
 	defer outFile.Close()
 
@@ -99,7 +92,7 @@ func main() {
 }
 
 // RayTraceScanLine will perform ray tracing for a single line of the image
-func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
+func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int, channel *chan bool) {
 	for x := 0; x < maxX; x++ {
 		var red, green, blue float32
 
@@ -132,5 +125,5 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int) {
 		frame.Set(x, y, c)
 	}
 
-	communicationChannel <- true
+	channel <- true
 }
