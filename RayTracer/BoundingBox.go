@@ -44,3 +44,8 @@ func GenerateBoundingBoxFromTris(tris []Triangle) BoundingBox {
         Min: min, 
         Max: max }
 }
+
+// IsRayColliding tests for ray AABB collision but does not care about the point of the collision
+func (b BoundingBox) IsRayColliding(r Ray) bool {
+    return false
+}

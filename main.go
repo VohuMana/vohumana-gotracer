@@ -125,5 +125,5 @@ func RayTraceScanLine(frame *image.RGBA, y, maxX, maxY int, channel *chan bool) 
 		frame.Set(x, y, c)
 	}
 
-	channel <- true
+	*channel <- true
 }
