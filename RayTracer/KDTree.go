@@ -2,6 +2,7 @@ package raytracer
 
 import
 (
+    "image/color"
     "sort"
 )
 
@@ -72,6 +73,57 @@ func createNewKDNode(tris []Triangle) *KDTreeNode {
     newNode.Right = nil
 
     return newNode
+}
+
+// TestIntersection will check if anything has collided with the tree
+func (k KDTree) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
+    return testTreeIntersection(k.Root, &r, tMin, tMax)
+}
+
+func testTreeIntersection(treeNode *KDTreeNode, r *Ray, tMin, tMax float32) (bool, IntersectionRecord) {
+    // If the ray is colliding with the bounding box go deeper else no collision
+    if (treeNode != nil && treeNode.AABB.IsRayColliding(*r)) {
+        // Check if this node has children, if so continue traversal otherwise we are at a leaf node and need to check for collision with the triangles
+        if (treeNode.Left != nil || treeNode.Right != nil) {
+            hitLeft, recordLeft := testTreeIntersection(treeNode.Left, r, tMin, tMax)
+            hitRight, recordRight := testTreeIntersection(treeNode.Right, r, tMin, tMax)
+
+            if (hitLeft && hitRight) {
+                if (recordLeft.T < recordRight.T) {
+                    return true, recordLeft
+                }
+
+                return true, recordRight
+            } else if (hitRight) {
+                return true, recordRight
+            }
+
+            return hitLeft, recordLeft
+        }
+        
+        collisionDetected := false
+        var closestHitRecord IntersectionRecord
+        closestT := tMax
+        arrayLen := len(treeNode.Object)
+
+        for i := 0; i < arrayLen; i++ {
+            isColliding, hitRecord := treeNode.Object[i].TestIntersection(*r, tMin, closestT) 
+            if (isColliding) {
+                collisionDetected = true
+                closestHitRecord = hitRecord
+                closestT = hitRecord.T
+            }
+        }
+
+        return collisionDetected, closestHitRecord
+    }
+
+    return false, IntersectionRecord{}
+}
+
+// GetColor will return the color of the triangle that intersected
+func (k KDTree) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA {
+    return i.Object.GetColor(r, i, bounces)
 }
 
 // ByMidpointX is used to sort triangles based on their midpoint in the X axis

@@ -47,5 +47,26 @@ func GenerateBoundingBoxFromTris(tris []Triangle) BoundingBox {
 
 // IsRayColliding tests for ray AABB collision but does not care about the point of the collision
 func (b BoundingBox) IsRayColliding(r Ray) bool {
-    return false
+    dirFrac := NewVector3(1.0, 1.0, 1.0)
+    dirFrac = dirFrac.Divide(r.Direction)
+
+    t1 := float64((b.Min.X - r.Origin.X) * dirFrac.X)
+    t2 := float64((b.Max.X - r.Origin.X) * dirFrac.X)
+    t3 := float64((b.Min.Y - r.Origin.Y) * dirFrac.Y)
+    t4 := float64((b.Max.Y - r.Origin.Y) * dirFrac.Y)
+    t5 := float64((b.Min.Z - r.Origin.Z) * dirFrac.Z)
+    t6 := float64((b.Max.Z - r.Origin.Z) * dirFrac.Z)
+
+    tMin := math.Max(math.Max(math.Min(t1, t2), math.Min(t3, t4)), math.Min(t5, t6))
+    tMax := math.Min(math.Min(math.Max(t1, t2), math.Max(t3, t4)), math.Max(t5, t6))
+
+    if (tMax < 0) {
+        return false
+    }
+
+    if (tMin > tMax) {
+        return false
+    }
+
+    return true
 }
