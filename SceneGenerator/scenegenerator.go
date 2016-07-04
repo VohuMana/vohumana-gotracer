@@ -284,6 +284,25 @@ func generateHeart() {
 	sphereCount++
 }
 
+func generateCubes(height, width, depth float32, numBoxes uint) {
+	for i := uint(0); i < numBoxes; i++ {
+		var pos raytracer.Vector3
+		pos.X = (rand.Float32() * width) - (width / 2.0)
+		pos.Y = (rand.Float32() * height) - (height / 2.0)
+		pos.Z = (rand.Float32() * depth) - (depth / 2.0)
+
+		scaleX := rand.Float32() * 10.0
+		// scaleY := rand.Float32() * 10.0
+		// sacleZ := rand.Float32() * 10.0
+
+		mesh := raytracer.NewExportableTriangleMesh("ObjectFiles\\bunny.obj", raytracer.NewVector3(scaleX, scaleX, scaleX), pos, nil)
+		
+		mesh.Properties = getRandomMaterial()
+		
+		raytracer.Scene.AddObject(strconv.Itoa(int(i+1)), mesh)
+	}
+}
+
 func main() {
 	var lightFilename string
 	var sceneFilename string
@@ -291,6 +310,7 @@ func main() {
 	var numberLights uint
 	var generatePhongTest bool
 	var heartTest bool
+	var sphereTest bool
 	
 	flag.StringVar(&lightFilename, "light", "GeneratedLights.json", "Filename to output generated lights JSON to")
 	flag.StringVar(&sceneFilename, "scene", "GeneratedScene.json", "Filename to output the generated scene JSON to")
@@ -298,6 +318,7 @@ func main() {
 	flag.UintVar(&numberLights, "numLights", 5, "Number of lights to spawn")
 	flag.BoolVar(&generatePhongTest, "phongtest", false, "Pass true to this to generate a phong material test grid")
 	flag.BoolVar(&heartTest, "heart", false, "Pass true to this to generate a heart")
+	flag.BoolVar(&sphereTest, "spherebox", false, "Pass true to this to generate spheres in a box")
 	flag.Parse()	
 	
 	seedVal := time.Now().UTC().UnixNano()
@@ -310,9 +331,12 @@ func main() {
 	} else if (heartTest) {
 		generateHeart()
 		spawnLightsInXZPlane(40.0, 3)	
-	} else {
+	} else if (sphereTest) {
 		spawnSpheresInCube(100.0, 100.0, 100.0, numberSpheres)
 		spawnLightsInXZPlane(200.0, numberLights)	
+	} else {
+		generateCubes(100.0, 100.0, 100.0, numberSpheres)
+		spawnLightsInXZPlane(200.0, numberLights)
 	}
 	
 	raytracer.ExportScene(sceneFilename, lightFilename)

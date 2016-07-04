@@ -2,6 +2,7 @@ package raytracer
 
 import (
 	"encoding/json"
+	"fmt"
 	"image/color"
 	"io"
 	"log"
@@ -110,6 +111,7 @@ func ImportScene(objectsFilename, lightsfilename string) {
 }
 
 func importScene(objectsFilename string) {
+	var meshes []TriangleMesh
 	sceneFile, err := os.Open(objectsFilename)
 	checkError(err)
 	defer sceneFile.Close()
@@ -132,16 +134,38 @@ func importScene(objectsFilename string) {
 		switch object.(type) {
 		case map[string]interface{}:
 			obj, ok := object.(map[string]interface{})
-			if true == ok {
+			if (true == ok) {
 				s, isSphere := deserializeSphere(obj)
 				if true == isSphere {
 					Scene.AddObject(name, s)
+				} else {
+					triMesh, ok := deserializeTriMesh(obj)
+					if (true == ok) {
+						meshes = append(meshes, triMesh)
+					}
 				}
 			}
 		default:
 			continue
 		}
 	}
+
+	if (len(meshes) > 0) {
+		addAllTrianglesToScene(meshes)
+	}
+}
+
+func addAllTrianglesToScene(meshes []TriangleMesh) {
+	var triangles []Triangle
+
+	// Concat all of the meshes into one list of triangles
+	for i := 0; i < len(meshes); i++ {
+		triangles = append(triangles, meshes[i].TriangleList...)
+	}
+
+	fmt.Printf("Generating KD Tree for %v triangles\n", len(triangles))
+	sceneTree := GenerateKDTree(triangles)
+	Scene.AddObject("SceneTree", sceneTree)	
 }
 
 func importLights(lightsFilename string) {

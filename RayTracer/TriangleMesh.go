@@ -10,13 +10,99 @@ type TriangleMesh struct {
     TriangleList []Triangle
 }
 
+// ExportableTriangleMesh is a way to export a triangle mesh with out having to export all the triangles
+type ExportableTriangleMesh struct {
+    ObjectFileName string
+    Scale, Translation Vector3
+    Properties Material
+}
+
+// NewExportableTriangleMesh creates a new exportable triangle mesh
+func NewExportableTriangleMesh(objFilePath string, scaleValue, translationValue Vector3, mat Material) ExportableTriangleMesh {
+    return ExportableTriangleMesh {
+        ObjectFileName: objFilePath,
+        Scale: scaleValue,
+        Translation: translationValue,
+        Properties: mat }
+}
+
+// TestIntersection does nothing for an ExportableTriangleMesh
+func (mesh ExportableTriangleMesh) TestIntersection(r Ray, tMin, tMax float32) (bool, IntersectionRecord) {
+    return false, IntersectionRecord{}
+}
+
+// GetColor does nothing for an ExportableTriangleMesh
+func (mesh ExportableTriangleMesh) GetColor(r Ray, i IntersectionRecord, bounces uint32) color.RGBA {
+    return color.RGBA {R: 0, G:0, B:0, A:255}
+}
+
+func deserializeTriMesh(object map[string]interface{}) (TriangleMesh, bool) {
+    var meshExport ExportableTriangleMesh
+    var mesh TriangleMesh
+    validMesh := true
+    
+    for name, object := range object {
+        switch name {
+            case "Scale":
+                scale, ok := object.(map[string]interface{})
+                if (true == ok) {
+                    meshExport.Scale, ok = deserializeVector3(scale)
+                    if (false == ok) {
+                        validMesh = false
+                        break;
+                    }
+                }
+                
+            case "Translation":
+                translation, ok := object.(map[string]interface{})
+                if (true == ok) {
+                    meshExport.Translation, ok = deserializeVector3(translation)
+                    if (false == ok) {
+                        validMesh = false
+                        break;
+                    }
+                }
+
+            case "ObjectFileName":
+                filename, ok := object.(string)
+                if (true == ok) {
+                    meshExport.ObjectFileName = string(filename)
+                } else {
+                    validMesh = false
+                    break;
+                }
+                
+            case "Properties":
+                prop, ok := object.(map[string]interface{})
+                if (true == ok) {
+                    mat, ok := deserializeMaterial(prop)
+                    if (true == ok) {
+                        meshExport.Properties = mat
+                    } else {
+                        validMesh = false
+                        break;
+                    }    
+                }
+            
+            default:
+                validMesh = false
+                break
+        }
+    }
+
+    if (validMesh) {
+        mesh = NewTriangleMesh(meshExport.ObjectFileName, meshExport.Properties)
+        scaleMtx := ScaleMatrix(meshExport.Scale.X, meshExport.Scale.Y, meshExport.Scale.Z)
+        mesh = mesh.ApplyMatrix3(scaleMtx)
+        mesh = mesh.Translate(meshExport.Translation)
+    }
+    
+    return mesh, validMesh
+}
+
 // NewTriangleMesh creates a new triangle mesh from an obj file
 func NewTriangleMesh(objFilename string, mat Material) TriangleMesh {
     meshTris := LoadObjFile(objFilename)
-
-    // for _, tri := range meshTris {
-    //     tri.Properties = mat
-    // }
 
     for i := 0; i < len(meshTris); i++ {
         meshTris[i].Properties = mat

@@ -45,9 +45,15 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
+	fmt.Println("Importing...")
+	importTime := time.Now()
+
 	raytracer.ImportConfig(*configFilename)
 	raytracer.ImportScene(*sceneFilename, *lightsFilename)
 	raytracer.ImportCamera(*cameraFilename)
+	
+	elapsedImport := time.Since(importTime)
+	fmt.Printf("Import time was: %v\n", elapsedImport)
 
 	xSize := raytracer.Settings.WidthInPixels
 	ySize := raytracer.Settings.HeightInPixels
@@ -81,7 +87,7 @@ func main() {
 	}
 
 	elapsedTime := time.Since(startTime)
-	fmt.Printf("Render duration was: %v s", elapsedTime.Seconds())
+	fmt.Printf("Render duration was: %v\n", elapsedTime)
 
 	outFile, err := os.Create(*outFilename)
 	checkError(err)
