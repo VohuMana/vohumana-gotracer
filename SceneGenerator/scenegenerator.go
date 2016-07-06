@@ -4,9 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"image/color"
+	"image/png"
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 	"github.com/vohumana/vohumana-gotracer/RayTracer"
@@ -291,15 +293,43 @@ func generateCubes(height, width, depth float32, numBoxes uint) {
 		pos.Y = (rand.Float32() * height) - (height / 2.0)
 		pos.Z = (rand.Float32() * depth) - (depth / 2.0)
 
-		scaleX := rand.Float32() * 10.0
-		// scaleY := rand.Float32() * 10.0
-		// sacleZ := rand.Float32() * 10.0
+		scale := rand.Float32() * 10.0
 
-		mesh := raytracer.NewExportableTriangleMesh("ObjectFiles\\bunny.obj", raytracer.NewVector3(scaleX, scaleX, scaleX), pos, nil)
+		mesh := raytracer.NewExportableTriangleMesh("ObjectFiles\\box.obj", raytracer.NewVector3(scale, scale, scale), pos, nil)
 		
 		mesh.Properties = getRandomMaterial()
 		
 		raytracer.Scene.AddObject(strconv.Itoa(int(i+1)), mesh)
+	}
+}
+
+func sceneFromImage(pngImageName string) {
+	imageFile, err := os.Open(pngImageName)
+	if (err != nil) {
+		log.Fatal(err)
+	}
+	defer imageFile.Close()
+
+	decodedPng, err := png.Decode(imageFile)
+	if (err != nil) {
+		log.Fatal(err)
+	}
+
+	b := decodedPng.Bounds()
+	i := 0
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			r, g, b, _ := decodedPng.At(x, y).RGBA()
+			
+			pos := raytracer.NewVector3(float32(x), float32(y), -5)
+			scale := raytracer.NewVector3(1.0, 1.0, 1.0)
+			properties := raytracer.NewPhong(color.RGBA {R: uint8(r), G: uint8(g), B: uint8(b), A: 255}, 0.1, 300)
+
+			mesh := raytracer.NewExportableTriangleMesh("ObjectFiles\\box.obj", scale, pos, properties)
+
+			raytracer.Scene.AddObject(strconv.Itoa(int(i+1)), mesh)
+			i++
+		}
 	}
 }
 
@@ -311,6 +341,7 @@ func main() {
 	var generatePhongTest bool
 	var heartTest bool
 	var sphereTest bool
+	var pngFile string
 	
 	flag.StringVar(&lightFilename, "light", "GeneratedLights.json", "Filename to output generated lights JSON to")
 	flag.StringVar(&sceneFilename, "scene", "GeneratedScene.json", "Filename to output the generated scene JSON to")
@@ -319,6 +350,7 @@ func main() {
 	flag.BoolVar(&generatePhongTest, "phongtest", false, "Pass true to this to generate a phong material test grid")
 	flag.BoolVar(&heartTest, "heart", false, "Pass true to this to generate a heart")
 	flag.BoolVar(&sphereTest, "spherebox", false, "Pass true to this to generate spheres in a box")
+	flag.StringVar(&pngFile, "pngfilename", "", "Passing a PNG image path to this function will generate a scene from an image")
 	flag.Parse()	
 	
 	seedVal := time.Now().UTC().UnixNano()
@@ -334,6 +366,9 @@ func main() {
 	} else if (sphereTest) {
 		spawnSpheresInCube(100.0, 100.0, 100.0, numberSpheres)
 		spawnLightsInXZPlane(200.0, numberLights)	
+	} else if (pngFile != "") {
+		sceneFromImage(pngFile)
+		spawnLightsInXZPlane(200.0, numberLights)
 	} else {
 		generateCubes(100.0, 100.0, 100.0, numberSpheres)
 		spawnLightsInXZPlane(200.0, numberLights)
